@@ -2,13 +2,14 @@
 // PWA SERVICE WORKER REGISTRATION
 // ===========================
 
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
-            .then(reg => console.log('Service Worker registered:', reg))
-            .catch(err => console.log('Service Worker registration failed:', err));
-    });
-}
+// Temporarily disabled for development
+// if ('serviceWorker' in navigator) {
+//     window.addEventListener('load', () => {
+//         navigator.serviceWorker.register('./service-worker.js')
+//             .then(reg => console.log('Service Worker registered:', reg))
+//             .catch(err => console.log('Service Worker registration failed:', err));
+//     });
+// }
 
 // ===========================
 // TAB SWITCHING
@@ -259,17 +260,13 @@ function updateDashboard() {
         statusMsg.className = 'status-message warning';
         statusMsg.textContent = `⚠️ Behind pace. Current projection: ${projectedWeight.toFixed(1)} lb at goal date. Need ${neededLossPerWeek.toFixed(1)} lb/week.`;
     }
-
-    document.getElementById('targetCalories').textContent = settings.calorieTarget;
-    document.getElementById('targetProtein').textContent = settings.proteinTarget;
 }
 
 // ===========================
 // WEEKLY MEAL MANAGEMENT
 // ===========================
 
-// Preview image as user types URL
-document.addEventListener('DOMContentLoaded', () => {
+function setupImagePreview() {
     const imageInput = document.getElementById('weeklyMealImage');
     if (imageInput) {
         imageInput.addEventListener('input', (e) => {
@@ -284,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-});
+}
 
 function saveWeeklyMeal() {
     const name = document.getElementById('weeklyMealName').value.trim();
@@ -318,17 +315,24 @@ function displaySavedMeal() {
     const card = document.getElementById('savedMealCard');
     const display = document.getElementById('savedMealDisplay');
 
+    if (!card || !display) {
+        console.error('Saved meal card or display not found');
+        return;
+    }
+
     if (!data.weeklyMeal) {
+        console.log('No weekly meal saved yet');
         card.style.display = 'none';
         return;
     }
 
+    console.log('Displaying saved meal:', data.weeklyMeal.name);
     const meal = data.weeklyMeal;
     display.innerHTML = `
         <div class="saved-meal-display">
             ${meal.imageUrl ? `
                 <div class="meal-image-container">
-                    <img src="${meal.imageUrl}" alt="${meal.name}">
+                    <img src="${meal.imageUrl}" alt="${meal.name}" loading="lazy">
                 </div>
             ` : ''}
             <div class="meal-details">
@@ -346,7 +350,7 @@ function displaySavedMeal() {
                 ${meal.ingredients ? `
                     <div class="meal-ingredients">
                         <div class="meal-ingredients-title">Ingredients</div>
-                        <div class="meal-ingredients-list">${meal.ingredients}</div>
+                        <div class="meal-ingredients-list">${meal.ingredients.replace(/\n/g, '<br>')}</div>
                     </div>
                 ` : ''}
                 <button class="btn btn-primary" style="margin-top: 16px;" onclick="useWeeklyMealInLog()">
@@ -370,6 +374,23 @@ function useWeeklyMealInLog() {
 }
 
 // ===========================
+// COLLAPSIBLE SECTIONS
+// ===========================
+
+function toggleCollapsible(sectionId) {
+    const content = document.getElementById(sectionId + 'Content');
+    const toggle = document.getElementById(sectionId + 'Toggle');
+
+    if (content.classList.contains('open')) {
+        content.classList.remove('open');
+        toggle.classList.remove('open');
+    } else {
+        content.classList.add('open');
+        toggle.classList.add('open');
+    }
+}
+
+// ===========================
 // MEAL SUGGESTIONS
 // ===========================
 
@@ -380,42 +401,384 @@ function getMealSuggestions() {
             imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80',
             calories: 1750,
             protein: 185,
-            ingredients: '8 oz grilled chicken breast\n2 cups white rice\n1 cup steamed broccoli\n1 tbsp olive oil\nSeasonings (garlic, paprika, salt, pepper)'
+            breakfast: {
+                time: '7:00 AM',
+                food: '4 whole eggs scrambled\n2 slices whole wheat toast\n1 banana\nBlack coffee or green tea',
+                cals: 450,
+                protein: 32
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '4 oz grilled chicken breast\n1.5 cups white rice\n1 cup steamed broccoli\n1 tsp olive oil',
+                cals: 550,
+                protein: 52
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '4 oz grilled chicken breast\n1 cup white rice\n1 cup steamed broccoli\nSeasonings',
+                cals: 450,
+                protein: 52
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: '1 scoop whey protein shake\n1 apple\n1 cup Greek yogurt (0% fat)',
+                cals: 300,
+                protein: 49
+            },
+            water: '1 gallon (128 oz) - Drink 16 oz with each meal and sip throughout day',
+            groceryList: '3.5 lbs chicken breast (for 7 days)\n2 dozen eggs\n1 loaf whole wheat bread\n7 bananas\n2 lbs white rice\n2 bags frozen broccoli\nOlive oil\n7 apples\n2 large Greek yogurt containers\n1 tub whey protein\nCoffee/tea\nSeasonings'
         },
         {
             name: 'Salmon & Sweet Potato',
             imageUrl: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&q=80',
             calories: 1700,
             protein: 170,
-            ingredients: '8 oz grilled salmon\n2 medium sweet potatoes\n2 cups asparagus\n1 tbsp butter\nLemon and herbs'
+            breakfast: {
+                time: '7:00 AM',
+                food: '1 cup oatmeal with protein powder\n1 tbsp almond butter\n1/2 cup berries\nGreen tea',
+                cals: 420,
+                protein: 35
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '5 oz grilled salmon\n1 large sweet potato\n1 cup asparagus\nLemon and dill',
+                cals: 580,
+                protein: 62
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '5 oz grilled salmon\n1 medium sweet potato\n1 cup asparagus\n1 tbsp butter',
+                cals: 520,
+                protein: 55
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: '2 hard boiled eggs\n1 protein shake\nHandful almonds',
+                cals: 280,
+                protein: 38
+            },
+            water: '1 gallon (128 oz) - Critical for omega-3 absorption. Drink 20 oz upon waking.',
+            groceryList: '3.5 lbs salmon fillets (for 7 days)\n14 medium sweet potatoes\n3 lbs asparagus\nButter\n2 lemons, fresh dill\n1 container oatmeal\n1 tub protein powder\nAlmond butter\nFrozen berries\n2 dozen eggs\nAlmonds'
         },
         {
             name: 'Beef Stir-Fry',
             imageUrl: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=800&q=80',
             calories: 1800,
             protein: 190,
-            ingredients: '8 oz lean beef strips\n2 cups jasmine rice\nMixed vegetables (peppers, onions, carrots)\nSoy sauce and ginger\n1 tbsp sesame oil'
+            breakfast: {
+                time: '7:00 AM',
+                food: '3 whole eggs + 3 egg whites scramble\n1 cup mixed berries\n2 turkey sausage links\nBlack coffee',
+                cals: 440,
+                protein: 42
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '4 oz lean beef strips stir-fry\n1.5 cups jasmine rice\nBell peppers, onions, carrots\nSoy sauce, ginger, sesame oil',
+                cals: 620,
+                protein: 68
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '4 oz lean beef strips stir-fry\n1 cup jasmine rice\nMixed vegetables\nLow-sodium soy sauce',
+                cals: 520,
+                protein: 58
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: '1 protein shake\n1 banana\n1 string cheese',
+                cals: 320,
+                protein: 42
+            },
+            water: '1 gallon+ (128 oz) - Red meat needs extra hydration. Drink 24 oz before workouts.',
+            groceryList: '3.5 lbs lean beef sirloin (for 7 days)\n3 dozen eggs\n1 package turkey sausage\n2 lbs jasmine rice\n4 bell peppers\n3 onions\n1 lb carrots\n1 bag frozen berries\n7 bananas\nString cheese\nSoy sauce, ginger, sesame oil\n1 tub protein powder'
         },
         {
             name: 'Turkey Ground Bowl',
             imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',
             calories: 1720,
             protein: 180,
-            ingredients: '8 oz lean ground turkey (93/7)\n2 cups brown rice\n1 cup black beans\nSalsa and Greek yogurt\nMixed greens'
+            breakfast: {
+                time: '7:00 AM',
+                food: 'Protein pancakes (1 scoop powder, 2 eggs, oats)\nSugar-free syrup\n1 turkey sausage patty\nCoffee',
+                cals: 410,
+                protein: 38
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '4 oz ground turkey (seasoned)\n1.5 cups brown rice\n1/2 cup black beans\nSalsa, Greek yogurt\nMixed greens',
+                cals: 590,
+                protein: 62
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '4 oz ground turkey taco bowl\n1 cup brown rice\n1/2 cup black beans\nSalsa, cheese, veggies',
+                cals: 520,
+                protein: 58
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: '1 protein shake\n1 apple\n2 tbsp peanut butter',
+                cals: 300,
+                protein: 42
+            },
+            water: '1 gallon (128 oz) - Fiber from beans needs hydration. Drink 16 oz between meals.',
+            groceryList: '3.5 lbs ground turkey 93/7 (for 7 days)\n2 dozen eggs\n1 container oats\n1 tub protein powder\n1 package turkey sausage\n2 lbs brown rice\n3 cans black beans\n1 jar salsa\n2 large containers Greek yogurt\n2 bags mixed greens\n7 apples\nPeanut butter\nShredded cheese\nTaco seasoning'
         },
         {
             name: 'Egg & Veggie Scramble',
             imageUrl: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=800&q=80',
             calories: 1650,
             protein: 175,
-            ingredients: '6 whole eggs\n4 egg whites\n2 cups mixed vegetables\n4 slices whole wheat toast\n1 cup oatmeal with berries'
+            breakfast: {
+                time: '7:00 AM',
+                food: '3 whole eggs + 2 egg whites scramble\nMixed peppers, onions, spinach\n2 slices whole wheat toast\nBlack coffee',
+                cals: 380,
+                protein: 35
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: 'Veggie-packed omelet (3 eggs)\n1 cup white rice\n1 cup steamed broccoli\n1 apple',
+                cals: 560,
+                protein: 48
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: 'Egg white stir-fry (6 egg whites + 2 whole eggs)\nMixed vegetables\n1 cup quinoa\nSeasonings',
+                cals: 510,
+                protein: 62
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: '1 protein shake\n1 cup cottage cheese\n1 banana',
+                cals: 300,
+                protein: 50
+            },
+            water: '1 gallon (128 oz) - High protein needs hydration. Drink 20 oz upon waking.',
+            groceryList: '5 dozen eggs (for 7 days)\n3 bags frozen mixed vegetables\n2 bell peppers\n2 onions\n1 bag fresh spinach\n1 loaf whole wheat bread\n1 lb quinoa\n2 lbs white rice\n7 apples\n7 bananas\n1 large cottage cheese\n1 tub protein powder\nBroccoli\nCoffee'
         },
         {
             name: 'Shrimp Pasta',
             imageUrl: 'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=800&q=80',
             calories: 1780,
             protein: 172,
-            ingredients: '8 oz shrimp\n2.5 cups whole wheat pasta\nMarinara sauce\n2 cups spinach\nParmesan cheese (2 tbsp)'
+            breakfast: {
+                time: '7:00 AM',
+                food: '4 whole eggs scrambled\n1 cup oatmeal\n1/2 cup berries\nGreen tea',
+                cals: 440,
+                protein: 32
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '6 oz garlic butter shrimp\n2 cups whole wheat pasta\nMarinara sauce\n1 cup spinach\nParmesan (1 tbsp)',
+                cals: 640,
+                protein: 68
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '5 oz lemon herb shrimp\n1.5 cups whole wheat pasta\nMarinara sauce\nSpinach salad with vinaigrette',
+                cals: 540,
+                protein: 58
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: '1 protein shake\nHandful almonds\n1 Greek yogurt',
+                cals: 260,
+                protein: 34
+            },
+            water: '1+ gallons (140 oz) - Seafood high in sodium. Drink 24 oz with each meal.',
+            groceryList: '3.5 lbs fresh/frozen shrimp (for 7 days)\n2 boxes whole wheat pasta\n2 jars marinara sauce\n3 bags fresh spinach\nParmesan cheese\n1 container oatmeal\n1 bag frozen berries\n3 dozen eggs\nAlmonds\n7 Greek yogurts\n1 tub protein powder\nGarlic, butter, lemon, herbs\nGreen tea'
+        },
+        {
+            name: 'Steak & Potatoes',
+            imageUrl: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=800&q=80',
+            calories: 1820,
+            protein: 195,
+            breakfast: {
+                time: '7:00 AM',
+                food: 'Steak & eggs (3 oz leftover steak, 3 eggs)\n2 slices whole wheat toast\n1 orange\nBlack coffee',
+                cals: 480,
+                protein: 48
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '5 oz grilled sirloin steak\n1 large baked potato\n1 tbsp butter\n1 cup green beans\nA1 sauce',
+                cals: 660,
+                protein: 72
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '5 oz grilled sirloin\n1 medium baked potato\n1 cup roasted green beans\nGarlic butter\nSteak seasoning',
+                cals: 580,
+                protein: 68
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: 'Beef jerky (2 oz)\n1 apple\n1 protein shake',
+                cals: 280,
+                protein: 45
+            },
+            water: '1+ gallons (140 oz) - Red meat needs extra water for digestion. Drink 32 oz after dinner.',
+            groceryList: '4 lbs sirloin steak (for 7 days + breakfast)\n21 medium potatoes (3/day)\n3 lbs green beans\nButter\nSteak seasoning (Montreal, garlic, pepper)\n3 dozen eggs\n1 loaf whole wheat bread\n7 oranges\n7 apples\nBeef jerky\n1 tub protein powder\nA1 sauce\nGarlic\nCoffee'
+        },
+        {
+            name: 'Protein Burrito Bowl',
+            imageUrl: 'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=800&q=80',
+            calories: 1730,
+            protein: 182,
+            breakfast: {
+                time: '7:00 AM',
+                food: 'Breakfast burrito bowl\n3 scrambled eggs\n1/2 cup black beans\n1/4 cup cheese\nSalsa\nCoffee',
+                cals: 420,
+                protein: 38
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '5 oz grilled chicken\n1.5 cups cilantro-lime rice\n1/2 cup black beans\n1/2 cup corn\nGuacamole\nSalsa\nGreek yogurt',
+                cals: 640,
+                protein: 68
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '5 oz seasoned chicken\n1 cup cilantro-lime rice\n1/2 cup black beans\nCheese (2 tbsp)\nPico de gallo\nLettuce',
+                cals: 560,
+                protein: 62
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: 'Protein shake\nTortilla chips & salsa (1 oz)\n1 string cheese',
+                cals: 310,
+                protein: 34
+            },
+            water: '1 gallon (128 oz) - Fiber from beans needs water. Drink 20 oz between meals.',
+            groceryList: '4 lbs chicken breast (for 7 days)\n2 lbs white rice\n4 cans black beans\n2 cans corn\nFresh cilantro (2 bunches)\n7 limes\n2 jars salsa\n2 large Greek yogurts\nShredded cheese (Mexican blend)\n7 avocados\n2 dozen eggs\n1 bag tortilla chips\nString cheese\n1 tub protein powder\nRomaine lettuce\nTomatoes for pico\nCoffee\nTaco seasoning'
+        },
+        {
+            name: 'Tuna Rice Bowl',
+            imageUrl: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800&q=80',
+            calories: 1680,
+            protein: 168,
+            breakfast: {
+                time: '7:00 AM',
+                food: '4 whole eggs scrambled\n1 cup white rice\nSoy sauce\nGreen tea',
+                cals: 420,
+                protein: 32
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '2 cans tuna (drained)\n1.5 cups white rice\n1 cup edamame\nSoy sauce, sesame oil\nSriracha mayo\nSeaweed snack',
+                cals: 620,
+                protein: 68
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '1.5 cans tuna\n1 cup white rice\n1 cup edamame\nSoy sauce\nDiced cucumber\nGinger',
+                cals: 540,
+                protein: 58
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: '1 protein shake\n1 banana\nHandful almonds',
+                cals: 280,
+                protein: 30
+            },
+            water: '1+ gallons (140 oz) - Tuna is salty. Drink 24 oz with each meal to flush sodium.',
+            groceryList: '21 cans tuna in water (3 cans/day for 7 days)\n3 lbs white rice\n2 bags frozen edamame\nSoy sauce (low sodium)\nSesame oil\nSriracha\nMayo (light)\n3 dozen eggs\n7 bananas\nAlmonds\n1 tub protein powder\nSeaweed snacks\n2 cucumbers\nFresh ginger\nGreen tea'
+        },
+        {
+            name: 'Pork Chop Dinner',
+            imageUrl: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=800&q=80',
+            calories: 1760,
+            protein: 178,
+            breakfast: {
+                time: '7:00 AM',
+                food: '3 oz leftover pork (diced)\n3 eggs scrambled\n1 cup hash browns\nBlack coffee',
+                cals: 450,
+                protein: 42
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '5 oz grilled pork chop\n1.5 cups white rice\n1 cup roasted Brussels sprouts\n1 tbsp olive oil\nApple sauce',
+                cals: 630,
+                protein: 68
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '5 oz seasoned pork chop\n1 cup white rice\n1 cup Brussels sprouts\nGarlic butter\nThyme & rosemary',
+                cals: 580,
+                protein: 62
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: '1 protein shake\n1 apple\nPork rinds (1 oz)',
+                cals: 280,
+                protein: 36
+            },
+            water: '1 gallon (128 oz) - Pork is filling. Drink 16 oz 30 min before meals.',
+            groceryList: '8 pork chops (5-6 oz each, for 7 days + breakfast)\n3 lbs white rice\n4 lbs Brussels sprouts\nOlive oil\nButter\n3 dozen eggs\n1 bag hash browns\n7 apples\nApple sauce\nPork rinds\n1 tub protein powder\nSeasonings (garlic powder, thyme, rosemary, salt, pepper)\nCoffee'
+        },
+        {
+            name: 'Greek Chicken Plate',
+            imageUrl: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=800&q=80',
+            calories: 1710,
+            protein: 185,
+            breakfast: {
+                time: '7:00 AM',
+                food: 'Greek yogurt bowl (2 cups)\n1 scoop protein powder\nHoney and walnuts\nBlack coffee',
+                cals: 420,
+                protein: 52
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '5 oz grilled chicken (lemon-herb)\n1.5 cups couscous\nCucumber tomato salad\nTzatziki sauce\nOlives (5-6)\nFeta cheese',
+                cals: 640,
+                protein: 68
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '5 oz grilled chicken\n1 cup couscous\nGreek salad (cucumber, tomato, onion)\nTzatziki\nFeta cheese\nPita bread (1 piece)',
+                cals: 580,
+                protein: 62
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: 'Hummus with veggies\n1 protein shake\n1 small Greek yogurt',
+                cals: 270,
+                protein: 33
+            },
+            water: '1 gallon (128 oz) - Mediterranean diet. Drink 16 oz with lemon in morning.',
+            groceryList: '4 lbs chicken breast (for 7 days)\n2 boxes couscous\n10 cucumbers\n10 tomatoes\n2 red onions\n2 containers tzatziki sauce\n1 jar kalamata olives\n1 large block feta cheese\n3 large containers Greek yogurt (0% or 2%)\n1 tub protein powder\nHoney\nWalnuts\n1 container hummus\nBaby carrots\nPita bread\nLemons\nFresh oregano, dill\nCoffee'
+        },
+        {
+            name: 'BBQ Chicken & Fries',
+            imageUrl: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=800&q=80',
+            calories: 1790,
+            protein: 180,
+            breakfast: {
+                time: '7:00 AM',
+                food: 'Chicken & egg breakfast wrap\n3 oz BBQ chicken (leftover)\n2 eggs\n1 whole wheat tortilla\nCoffee',
+                cals: 440,
+                protein: 48
+            },
+            lunch: {
+                time: '12:30 PM',
+                food: '6 oz BBQ chicken breast\n1 large potato (air-fried as fries)\n1 cup coleslaw\nBBQ sauce (2 tbsp)\nPickles',
+                cals: 660,
+                protein: 72
+            },
+            dinner: {
+                time: '6:30 PM',
+                food: '5 oz BBQ chicken\n1 medium potato (air-fried)\n1 cup coleslaw\nCorn on the cob (1 ear)\nBBQ sauce',
+                cals: 600,
+                protein: 68
+            },
+            snacks: {
+                times: '10:00 AM & 3:30 PM & 9:00 PM',
+                food: '1 protein shake\n1 apple\nChicken jerky (1 oz)',
+                cals: 290,
+                protein: 42
+            },
+            water: '1 gallon (128 oz) - BBQ sauce is high sodium. Drink 20 oz with each meal.',
+            groceryList: '4.5 lbs chicken breast (for 7 days + breakfast)\n21 large potatoes (3/day)\n2 bags coleslaw mix\n1 large bottle BBQ sauce (low sugar)\nColeslaw dressing\n1 dozen eggs\n1 package whole wheat tortillas\n7 apples\nChicken jerky\n1 tub protein powder\n7 ears corn (frozen or fresh)\nPickles\nCooking spray (for air fryer)\nCoffee'
         }
     ];
 }
@@ -423,26 +786,70 @@ function getMealSuggestions() {
 function renderMealSuggestions() {
     const suggestions = getMealSuggestions();
     const container = document.getElementById('mealSuggestions');
+
+    if (!container) {
+        console.error('Meal suggestions container not found');
+        return;
+    }
+
+    console.log('Rendering meal suggestions:', suggestions.length);
     container.innerHTML = '';
 
-    suggestions.forEach((meal) => {
+    suggestions.forEach((meal, index) => {
         const card = document.createElement('div');
         card.className = 'suggestion-card';
         card.innerHTML = `
-            <img src="${meal.imageUrl}" alt="${meal.name}" class="suggestion-image">
+            <img src="${meal.imageUrl}" alt="${meal.name}" class="suggestion-image" loading="lazy">
             <div class="suggestion-content">
                 <div class="suggestion-title">${meal.name}</div>
                 <div class="suggestion-macros">
-                    <div class="suggestion-macro"><strong>${meal.calories}</strong> cal</div>
-                    <div class="suggestion-macro"><strong>${meal.protein}g</strong> protein</div>
+                    <div class="suggestion-macro"><strong>${meal.calories}</strong> cal/day</div>
+                    <div class="suggestion-macro"><strong>${meal.protein}g</strong> protein/day</div>
                 </div>
-                <div class="suggestion-ingredients">${meal.ingredients}</div>
+                
+                <div class="meal-schedule">
+                    <div class="meal-time-block">
+                        <div class="meal-time-header">🌅 BREAKFAST - ${meal.breakfast.time}</div>
+                        <div class="meal-time-content">${meal.breakfast.food.replace(/\n/g, '<br>')}</div>
+                        <div class="meal-time-macros">${meal.breakfast.cals} cal • ${meal.breakfast.protein}g protein</div>
+                    </div>
+                    
+                    <div class="meal-time-block">
+                        <div class="meal-time-header">☀️ LUNCH - ${meal.lunch.time}</div>
+                        <div class="meal-time-content">${meal.lunch.food.replace(/\n/g, '<br>')}</div>
+                        <div class="meal-time-macros">${meal.lunch.cals} cal • ${meal.lunch.protein}g protein</div>
+                    </div>
+                    
+                    <div class="meal-time-block">
+                        <div class="meal-time-header">🌙 DINNER - ${meal.dinner.time}</div>
+                        <div class="meal-time-content">${meal.dinner.food.replace(/\n/g, '<br>')}</div>
+                        <div class="meal-time-macros">${meal.dinner.cals} cal • ${meal.dinner.protein}g protein</div>
+                    </div>
+                    
+                    <div class="meal-time-block snacks">
+                        <div class="meal-time-header">🍎 SNACKS - ${meal.snacks.times}</div>
+                        <div class="meal-time-content">${meal.snacks.food.replace(/\n/g, '<br>')}</div>
+                        <div class="meal-time-macros">${meal.snacks.cals} cal • ${meal.snacks.protein}g protein</div>
+                    </div>
+                </div>
+                
+                <div class="meal-time-block hydration">
+                    <div class="meal-time-header">💧 HYDRATION PROTOCOL</div>
+                    <div class="meal-time-content">${meal.water}</div>
+                </div>
+                
+                <div class="meal-time-block grocery">
+                    <div class="meal-time-header">🛒 WEEKLY GROCERY LIST</div>
+                    <div class="meal-time-content" style="line-height: 1.6;">${meal.groceryList.replace(/\n/g, '<br>')}</div>
+                </div>
+                
                 <button class="suggestion-button" onclick='useMealSuggestion(${JSON.stringify(meal).replace(/'/g, "&apos;")})'>
-                    ✅ Use This Meal
+                    ✅ MAKE THIS MY PLAN
                 </button>
             </div>
         `;
         container.appendChild(card);
+        console.log(`Added meal card ${index + 1}:`, meal.name);
     });
 }
 
@@ -637,6 +1044,7 @@ function initializeApp() {
     displayQuickMeal();
     drawChart();
     renderMealSuggestions();
+    setupImagePreview();
 }
 
 window.addEventListener('load', initializeApp);
