@@ -2,14 +2,15 @@
 // PWA SERVICE WORKER REGISTRATION
 // ===========================
 
-// Temporarily disabled for development
-// if ('serviceWorker' in navigator) {
-//     window.addEventListener('load', () => {
-//         navigator.serviceWorker.register('./service-worker.js')
-//             .then(reg => console.log('Service Worker registered:', reg))
-//             .catch(err => console.log('Service Worker registration failed:', err));
-//     });
-// }
+// UNREGISTER OLD SERVICE WORKER (to fix caching issues)
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+            registration.unregister();
+            console.log('Service Worker unregistered');
+        }
+    });
+}
 
 // ===========================
 // TAB SWITCHING
