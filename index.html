@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cut Tracker">
+    <meta name="theme-color" content="#60a5fa">
+    <meta name="description" content="Aggressive 5-month weight loss tracker for Japan trip">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="./icons/icon-192.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="./icons/icon-192.png">
+
+    <title>Japan Cut Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <h1>🇯🇵 Japan Cut Tracker</h1>
+            <p class="subtitle">Aggressive 5-month cut • For Japan trip</p>
+        </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">
+            <span class="tab-icon">📊</span>
+            <span class="tab-label">Dashboard</span>
+        </button>
+        <button class="tab-btn" data-tab="log" onclick="switchTab('log')">
+            <span class="tab-icon">📝</span>
+            <span class="tab-label">Log</span>
+        </button>
+        <button class="tab-btn" data-tab="meals" onclick="switchTab('meals')">
+            <span class="tab-icon">🍱</span>
+            <span class="tab-label">Meals</span>
+        </button>
+        <button class="tab-btn" data-tab="plan" onclick="switchTab('plan')">
+            <span class="tab-icon">🍽️</span>
+            <span class="tab-label">Plan</span>
+        </button>
+        <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
+            <span class="tab-icon">⚙️</span>
+            <span class="tab-label">Settings</span>
+        </button>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="main-content">
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content active">
+            <div class="container">
+                <!-- Progress Summary -->
+                <div class="card">
+                    <h2 class="card-title">Progress Summary</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Current Weight</div>
+                            <div class="stat-value" id="currentWeight">--</div>
+                            <span class="stat-unit">lb</span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Lost</div>
+                            <div class="stat-value" id="totalLost">--</div>
+                            <span class="stat-unit">lb</span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Days Until Goal</div>
+                            <div class="stat-value" id="daysUntilGoal">--</div>
+                            <span class="stat-unit">days</span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Needed Loss/Week</div>
+                            <div class="stat-value" id="neededLossPerWeek">--</div>
+                            <span class="stat-unit">lb/wk</span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Avg Loss/Week</div>
+                            <div class="stat-value" id="avgLossPerWeek">--</div>
+                            <span class="stat-unit">lb/wk</span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Projected Weight</div>
+                            <div class="stat-value" id="projectedWeight">--</div>
+                            <span class="stat-unit">lb</span>
+                        </div>
+                    </div>
+                    <div class="status-message" id="statusMessage">
+                        Enter your settings and log your first entry to see progress!
+                    </div>
+                </div>
+
+                <!-- Weight Chart -->
+                <div class="card">
+                    <h2 class="card-title">Weight Trend</h2>
+                    <div class="chart-container">
+                        <canvas id="weightChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- History Table -->
+                <div class="card">
+                    <h2 class="card-title">Recent History</h2>
+                    <div class="table-container">
+                        <table id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Weight</th>
+                                    <th>Δ</th>
+                                    <th>Cal</th>
+                                    <th>Protein</th>
+                                    <th>Steps</th>
+                                    <th>💪</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBody">
+                                <tr>
+                                    <td colspan="7" class="empty-state">No logs yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Tab -->
+        <div id="log-tab" class="tab-content">
+            <div class="container">
+                <div class="card">
+                    <h2 class="card-title">Daily Log</h2>
+                    <p class="card-subtitle">Track your daily progress</p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="logDate">Date</label>
+                            <input type="date" id="logDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="logWeight">Weight (lb)</label>
+                            <input type="number" id="logWeight" step="0.1" placeholder="e.g., 258.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="logCalories">Calories</label>
+                            <input type="number" id="logCalories" placeholder="e.g., 1750">
+                        </div>
+                        <div class="form-group">
+                            <label for="logProtein">Protein (g)</label>
+                            <input type="number" id="logProtein" placeholder="e.g., 180">
+                        </div>
+                        <div class="form-group">
+                            <label for="logSteps">Steps</label>
+                            <input type="number" id="logSteps" placeholder="e.g., 12000">
+                        </div>
+                        <div class="form-group">
+                            <label for="logWorkout">Workout?</label>
+                            <select id="logWorkout">
+                                <option value="false">No</option>
+                                <option value="true">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-large" onclick="saveLog()">💪 Save Log</button>
+                </div>
+
+                <!-- Today's Meal Plan -->
+                <div class="card">
+                    <h2 class="card-title">Today's Meal Plan</h2>
+                    <p class="card-subtitle">Add meals from your library</p>
+
+                    <div class="meal-add-section">
+                        <select id="mealSelect" class="meal-select">
+                            <option value="">Select a meal...</option>
+                        </select>
+                        <button class="btn btn-small" onclick="addMealToDay()">Add to Today</button>
+                    </div>
+
+                    <div id="dailyMeals" class="meal-list">
+                        <div class="empty-state">No meals planned</div>
+                    </div>
+
+                    <div id="dailyMealSummary" class="meal-summary" style="display: none;">
+                        <div class="meal-summary-title">Daily Totals</div>
+                        <div class="meal-summary-stats">
+                            <div class="meal-summary-stat">
+                                <strong id="dailyTotalCalories">0</strong> / <span id="targetCalories">1750</span> kcal
+                            </div>
+                            <div class="meal-summary-stat">
+                                <strong id="dailyTotalProtein">0</strong> / <span id="targetProtein">180</span> g
+                                protein
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meals Tab -->
+        <div id="meals-tab" class="tab-content">
+            <div class="container">
+                <div class="card">
+                    <h2 class="card-title">Add New Meal</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="mealName">Meal Name</label>
+                            <input type="text" id="mealName" placeholder="e.g., Breakfast - Eggs & Toast">
+                        </div>
+                        <div class="form-group">
+                            <label for="mealCalories">Calories</label>
+                            <input type="number" id="mealCalories" placeholder="e.g., 450">
+                        </div>
+                        <div class="form-group">
+                            <label for="mealProtein">Protein (g)</label>
+                            <input type="number" id="mealProtein" placeholder="e.g., 35">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="mealNotes">Notes (optional)</label>
+                        <textarea id="mealNotes" placeholder="e.g., 3 eggs, 2 slices whole wheat toast"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addMeal()">➕ Add Meal</button>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Meal Library</h2>
+                    <div id="mealLibrary" class="meal-list">
+                        <div class="empty-state">No meals saved yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plan Tab -->
+        <div id="plan-tab" class="tab-content">
+            <div class="container">
+                <div class="card">
+                    <h2 class="card-title">7-Day Meal Plan</h2>
+                    <p class="card-subtitle">Pre-built aggressive cut (1,650-1,800 cal, 170-200g protein)</p>
+
+                    <button class="btn btn-primary" onclick="generateGroceryList()">🛒 Generate Grocery List</button>
+
+                    <div class="meal-plan-grid" id="mealPlanGrid"></div>
+                </div>
+
+                <div class="card" id="groceryListCard" style="display: none;">
+                    <div class="collapsible-header" onclick="toggleCollapsible('groceryList')">
+                        <div>
+                            <h2 class="card-title">Weekly Grocery List</h2>
+                        </div>
+                        <span class="collapsible-toggle open" id="groceryListToggle">▼</span>
+                    </div>
+
+                    <div class="collapsible-content open" id="groceryListContent">
+                        <button class="btn btn-small" onclick="window.print()">🖨️ Print</button>
+                        <div id="groceryListDisplay"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="collapsible-header" onclick="toggleCollapsible('mealPrep')">
+                        <div>
+                            <h2 class="card-title">Meal Prep Guide</h2>
+                        </div>
+                        <span class="collapsible-toggle open" id="mealPrepToggle">▼</span>
+                    </div>
+
+                    <div class="collapsible-content open" id="mealPrepContent">
+                        <div class="prep-step">
+                            <span class="prep-step-number">1</span>
+                            <span class="prep-step-content"><strong>Cook Proteins:</strong> Bake 5-6 lbs chicken breast
+                                at 375°F for 25-30 min. Portion into 6-8 oz servings.</span>
+                        </div>
+                        <div class="prep-step">
+                            <span class="prep-step-number">2</span>
+                            <span class="prep-step-content"><strong>Prep Carbs:</strong> Cook 10-12 cups rice. Portion
+                                into 1-cup servings.</span>
+                        </div>
+                        <div class="prep-step">
+                            <span class="prep-step-number">3</span>
+                            <span class="prep-step-content"><strong>Boil Eggs:</strong> Hard boil 18-24 eggs. Store with
+                                shells on (up to 7 days).</span>
+                        </div>
+                        <div class="prep-step">
+                            <span class="prep-step-number">4</span>
+                            <span class="prep-step-content"><strong>Prep Vegetables:</strong> Wash and chop broccoli,
+                                peppers, spinach. Store separately.</span>
+                        </div>
+                        <div class="prep-step">
+                            <span class="prep-step-number">5</span>
+                            <span class="prep-step-content"><strong>Portion Snacks:</strong> Pre-measure Greek yogurt,
+                                protein powder, prep fruit.</span>
+                        </div>
+                        <div class="prep-step">
+                            <span class="prep-step-number">6</span>
+                            <span class="prep-step-content"><strong>Assemble Containers:</strong> 7 containers with
+                                protein, carb, vegetables. Label by day.</span>
+                        </div>
+                        <div class="prep-step">
+                            <span class="prep-step-number">7</span>
+                            <span class="prep-step-content"><strong>Storage:</strong> Keep 3 days in fridge, freeze
+                                rest. Thaw 24hrs before eating.</span>
+                        </div>
+                        <div class="prep-tips">
+                            <div class="prep-tips-title">💡 Pro Tips</div>
+                            <ul>
+                                <li><strong>Time-Saving:</strong> Prep Sunday (2-3 hours), saves 1+ hour daily</li>
+                                <li><strong>Calorie Control:</strong> Use food scale for accuracy</li>
+                                <li><strong>Flavor Variety:</strong> Rotate seasonings (BBQ, teriyaki, cajun)</li>
+                                <li><strong>Stay Consistent:</strong> Same meals weekly for first month</li>
+                                <li><strong>Hydration:</strong> 1 gallon water daily</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+            <div class="container">
+                <div class="card">
+                    <h2 class="card-title">Plan Settings</h2>
+                    <p class="card-subtitle">Configure your weight loss targets</p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="startWeight">Start Weight (lb)</label>
+                            <input type="number" id="startWeight" value="260" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="goalWeight">Goal Weight (lb)</label>
+                            <input type="number" id="goalWeight" value="200" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="startDate">Start Date</label>
+                            <input type="date" id="startDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="goalDate">Goal Date</label>
+                            <input type="date" id="goalDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="calorieTarget">Daily Calorie Target</label>
+                            <input type="number" id="calorieTarget" value="1750">
+                        </div>
+                        <div class="form-group">
+                            <label for="proteinTarget">Daily Protein (g)</label>
+                            <input type="number" id="proteinTarget" value="180">
+                        </div>
+                        <div class="form-group">
+                            <label for="stepTarget">Daily Steps</label>
+                            <input type="number" id="stepTarget" value="12000">
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="savePlanSettings()">💾 Save Settings</button>
+                        <button class="btn btn-secondary" onclick="resetAllData()">🗑️ Reset All Data</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">About</h2>
+                    <p style="color: #94a3b8; line-height: 1.8; font-size: 14px;">
+                        <strong style="color: #60a5fa;">Japan Cut Tracker</strong> is your personal weight loss
+                        companion for aggressive cutting. Track your daily progress, manage meals, and stay on target
+                        for your Japan trip goal.
+                    </p>
+                    <p style="color: #94a3b8; margin-top: 12px; font-size: 13px;">
+                        💡 <strong>Pro Tip:</strong> Add this app to your home screen for quick access!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Loading the app JavaScript -->
+    <script src="app.js"></script>
+</body>
+
+</html>

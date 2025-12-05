@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Japan Cut Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 24px 0;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #60a5fa;
+        }
+
+        .header .subtitle {
+            display: inline-block;
+            background: rgba(96, 165, 250, 0.15);
+            color: #93c5fd;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #60a5fa;
+        }
+
+        .card-subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 20px;
+        }
+
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+
+        input,
+        select,
+        textarea {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 15px;
+            color: #e2e8f0;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(239, 68, 68, 0.3);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        .stat-unit {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-left: 4px;
+        }
+
+        /* Status Message */
+        .status-message {
+            background: rgba(96, 165, 250, 0.1);
+            border-left: 4px solid #60a5fa;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #93c5fd;
+        }
+
+        .status-message.warning {
+            background: rgba(251, 191, 36, 0.1);
+            border-left-color: #fbbf24;
+            color: #fcd34d;
+        }
+
+        .status-message.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-left-color: #22c55e;
+            color: #86efac;
+        }
+
+        /* Meal Library */
+        .meal-list {
+            margin-top: 16px;
+        }
+
+        .meal-item {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .meal-info {
+            flex: 1;
+        }
+
+        .meal-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #e2e8f0;
+        }
+
+        .meal-stats {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .meal-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: none;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-icon.add {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+
+        .btn-icon.add:hover {
+            background: rgba(34, 197, 94, 0.3);
+        }
+
+        /* Daily Meal Summary */
+        .meal-summary {
+            background: rgba(96, 165, 250, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .meal-summary-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #93c5fd;
+        }
+
+        .meal-summary-stats {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+        }
+
+        .meal-summary-stat {
+            color: #cbd5e1;
+        }
+
+        .meal-summary-stat strong {
+            color: #60a5fa;
+        }
+
+        /* History Table */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #93c5fd;
+            border-bottom: 2px solid rgba(96, 165, 250, 0.3);
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid rgba(96, 165, 250, 0.1);
+        }
+
+        tr:nth-child(even) {
+            background: rgba(15, 23, 42, 0.3);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.yes {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+
+        .badge.no {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        /* Chart */
+        .chart-container {
+            margin-top: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 250px !important;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #22c55e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        /* Meal Plan Styles */
+        .meal-plan-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .day-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 10px;
+            padding: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .day-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(96, 165, 250, 0.2);
+        }
+
+        .day-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #60a5fa;
+        }
+
+        .day-workout {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+
+        .meal-section {
+            margin-bottom: 10px;
+        }
+
+        .meal-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .meal-content {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .day-totals {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(96, 165, 250, 0.2);
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .day-total-item {
+            color: #94a3b8;
+        }
+
+        .day-total-item strong {
+            color: #60a5fa;
+            font-size: 15px;
+        }
+
+        .day-actions {
+            margin-top: 12px;
+        }
+
+        .btn-add-day {
+            width: 100%;
+            padding: 8px;
+            font-size: 13px;
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-add-day:hover {
+            background: rgba(34, 197, 94, 0.3);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        /* Collapsible Section */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            padding: 4px 0;
+        }
+
+        .collapsible-toggle {
+            font-size: 18px;
+            transition: transform 0.3s;
+        }
+
+        .collapsible-toggle.open {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.open {
+            max-height: 3000px;
+        }
+
+        /* Grocery List */
+        .grocery-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .grocery-item {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 10px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #60a5fa;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        .grocery-category {
+            font-weight: 600;
+            color: #60a5fa;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        /* Meal Prep Guide */
+        .prep-step {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #60a5fa;
+        }
+
+        .prep-step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #60a5fa;
+            color: #0f172a;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: 700;
+            font-size: 13px;
+            margin-right: 8px;
+        }
+
+        .prep-step-content {
+            display: inline;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        .prep-tips {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 4px solid #22c55e;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-top: 16px;
+        }
+
+        .prep-tips-title {
+            font-weight: 600;
+            color: #86efac;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .prep-tips ul {
+            list-style-position: inside;
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.8;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .card {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+
+            .btn,
+            .header,
+            .collapsible-toggle {
+                display: none;
+            }
+
+            .collapsible-content {
+                max-height: none !important;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .meal-plan-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🇯🇵 Japan Cut Tracker</h1>
+            <div class="subtitle">Aggressive 5-month cut • For Japan trip</div>
+        </div>
+
+        <!-- Plan Setup -->
+        <div class="card">
+            <h2 class="card-title">⚙️ Plan Setup</h2>
+            <p class="card-subtitle">Configure your weight loss targets and timeline</p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="startWeight">Start Weight (lb)</label>
+                    <input type="number" id="startWeight" value="260" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="goalWeight">Goal Weight (lb)</label>
+                    <input type="number" id="goalWeight" value="200" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label for="goalDate">Goal Date (Japan Trip)</label>
+                    <input type="date" id="goalDate">
+                </div>
+                <div class="form-group">
+                    <label for="calorieTarget">Daily Calorie Target</label>
+                    <input type="number" id="calorieTarget" value="1750">
+                </div>
+                <div class="form-group">
+                    <label for="proteinTarget">Daily Protein Target (g)</label>
+                    <input type="number" id="proteinTarget" value="180">
+                </div>
+                <div class="form-group">
+                    <label for="stepTarget">Daily Step Target</label>
+                    <input type="number" id="stepTarget" value="12000">
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn" onclick="savePlanSettings()">💾 Save Plan Settings</button>
+                <button class="btn btn-secondary" onclick="resetAllData()">🗑️ Reset All Data</button>
+            </div>
+        </div>
+
+        <!-- Progress Dashboard -->
+        <div class="card">
+            <h2 class="card-title">📊 Progress Dashboard</h2>
+            <p class="card-subtitle">Your weight loss journey at a glance</p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Current Weight</div>
+                    <div class="stat-value" id="currentWeight">--</div>
+                    <span class="stat-unit">lb</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Lost</div>
+                    <div class="stat-value" id="totalLost">--</div>
+                    <span class="stat-unit">lb</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Days Until Goal</div>
+                    <div class="stat-value" id="daysUntilGoal">--</div>
+                    <span class="stat-unit">days</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Needed Loss/Week</div>
+                    <div class="stat-value" id="neededLossPerWeek">--</div>
+                    <span class="stat-unit">lb/wk</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Loss/Week</div>
+                    <div class="stat-value" id="avgLossPerWeek">--</div>
+                    <span class="stat-unit">lb/wk</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Projected Weight</div>
+                    <div class="stat-value" id="projectedWeight">--</div>
+                    <span class="stat-unit">lb</span>
+                </div>
+            </div>
+
+            <div class="status-message" id="statusMessage">
+                Enter your settings and log your first entry to see progress!
+            </div>
+        </div>
+
+        <!-- Daily Log -->
+        <div class="card">
+            <h2 class="card-title">📝 Log Today</h2>
+            <p class="card-subtitle">Track your daily progress</p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="logDate">Date</label>
+                    <input type="date" id="logDate">
+                </div>
+                <div class="form-group">
+                    <label for="logWeight">Weight (lb)</label>
+                    <input type="number" id="logWeight" step="0.1" placeholder="e.g., 258.5">
+                </div>
+                <div class="form-group">
+                    <label for="logCalories">Calories Eaten</label>
+                    <input type="number" id="logCalories" placeholder="e.g., 1750">
+                </div>
+                <div class="form-group">
+                    <label for="logProtein">Protein (g)</label>
+                    <input type="number" id="logProtein" placeholder="e.g., 180">
+                </div>
+                <div class="form-group">
+                    <label for="logSteps">Steps</label>
+                    <input type="number" id="logSteps" placeholder="e.g., 12000">
+                </div>
+                <div class="form-group">
+                    <label for="logWorkout">Workout Done?</label>
+                    <select id="logWorkout">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn" onclick="saveLog()">💪 Save Log</button>
+        </div>
+
+        <!-- Meal Planner -->
+        <div class="card">
+            <h2 class="card-title">🍱 Meal Library & Daily Planner</h2>
+            <p class="card-subtitle">Create meals and plan your daily nutrition</p>
+
+            <!-- Add New Meal -->
+            <div style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid rgba(96, 165, 250, 0.2);">
+                <h3 style="font-size: 16px; margin-bottom: 12px; color: #93c5fd;">➕ Add New Meal</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="mealName">Meal Name</label>
+                        <input type="text" id="mealName" placeholder="e.g., Breakfast - Eggs & Toast">
+                    </div>
+                    <div class="form-group">
+                        <label for="mealCalories">Calories</label>
+                        <input type="number" id="mealCalories" placeholder="e.g., 450">
+                    </div>
+                    <div class="form-group">
+                        <label for="mealProtein">Protein (g)</label>
+                        <input type="number" id="mealProtein" placeholder="e.g., 35">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="mealNotes">Notes (optional)</label>
+                    <textarea id="mealNotes" placeholder="e.g., 3 eggs, 2 slices whole wheat toast"></textarea>
+                </div>
+                <button class="btn" onclick="addMeal()">➕ Add Meal to Library</button>
+            </div>
+
+            <!-- Saved Meals Library -->
+            <div style="margin-bottom: 24px;">
+                <h3 style="font-size: 16px; margin-bottom: 12px; color: #93c5fd;">📚 Saved Meals</h3>
+                <div id="mealLibrary" class="meal-list">
+                    <div class="empty-state">No meals saved yet. Add your first meal above!</div>
+                </div>
+            </div>
+
+            <!-- Daily Meal Plan -->
+            <div style="padding-top: 24px; border-top: 1px solid rgba(96, 165, 250, 0.2);">
+                <h3 style="font-size: 16px; margin-bottom: 12px; color: #93c5fd;">📅 Today's Meal Plan</h3>
+                <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <select id="mealSelect" style="flex: 1; min-width: 200px;">
+                        <option value="">Select a meal...</option>
+                    </select>
+                    <button class="btn btn-small" onclick="addMealToDay()">Add to Today</button>
+                </div>
+                <div id="dailyMeals" class="meal-list">
+                    <div class="empty-state">No meals planned for today</div>
+                </div>
+                <div id="dailyMealSummary" class="meal-summary" style="display: none;">
+                    <div class="meal-summary-title">Daily Totals</div>
+                    <div class="meal-summary-stats">
+                        <div class="meal-summary-stat">
+                            <strong id="dailyTotalCalories">0</strong> / <span id="targetCalories">1750</span> kcal
+                        </div>
+                        <div class="meal-summary-stat">
+                            <strong id="dailyTotalProtein">0</strong> / <span id="targetProtein">180</span> g protein
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pre-Built Meal Plans -->
+        <div class="card">
+            <h2 class="card-title">🍽️ 7-Day Aggressive Cut Meal Plan</h2>
+            <p class="card-subtitle">Pre-built daily meal plans optimized for 1,650-1,800 cal, 170-200g protein</p>
+
+            <div class="btn-group" style="margin-bottom: 20px;">
+                <button class="btn" onclick="generateGroceryList()">🛒 Generate Grocery List</button>
+            </div>
+
+            <div class="meal-plan-grid" id="mealPlanGrid">
+                <!-- Meal plan cards will be inserted here by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Grocery List -->
+        <div class="card" id="groceryListCard" style="display: none;">
+            <div class="collapsible-header" onclick="toggleCollapsible('groceryList')">
+                <div>
+                    <h2 class="card-title">🛒 Weekly Grocery List</h2>
+                    <p class="card-subtitle">Everything you need for the 7-day meal plan</p>
+                </div>
+                <span class="collapsible-toggle" id="groceryListToggle">▼</span>
+            </div>
+
+            <div class="collapsible-content open" id="groceryListContent">
+                <div style="margin-top: 16px; margin-bottom: 16px;">
+                    <button class="btn btn-small" onclick="window.print()">🖨️ Print List</button>
+                </div>
+                <div id="groceryListDisplay"></div>
+            </div>
+        </div>
+
+        <!-- Meal Prep Guide -->
+        <div class="card">
+            <div class="collapsible-header" onclick="toggleCollapsible('mealPrep')">
+                <div>
+                    <h2 class="card-title">👨‍🍳 Meal Prep Guide</h2>
+                    <p class="card-subtitle">Step-by-step guide to prep your entire week</p>
+                </div>
+                <span class="collapsible-toggle open" id="mealPrepToggle">▼</span>
+            </div>
+
+            <div class="collapsible-content open" id="mealPrepContent">
+                <div style="margin-top: 20px;">
+                    <div class="prep-step">
+                        <span class="prep-step-number">1</span>
+                        <span class="prep-step-content"><strong>Cook Proteins in Bulk:</strong> Bake 5-6 lbs of chicken
+                            breast at 375°F for 25-30 min. Season with salt, pepper, garlic powder. Let cool and portion
+                            into containers (6-8 oz per serving).</span>
+                    </div>
+
+                    <div class="prep-step">
+                        <span class="prep-step-number">2</span>
+                        <span class="prep-step-content"><strong>Prepare Carbs:</strong> Cook 10-12 cups of white rice in
+                            a rice cooker (or on stovetop). Portion into 1-cup servings. Can also prep sweet potatoes by
+                            baking 6-8 medium potatoes.</span>
+                    </div>
+
+                    <div class="prep-step">
+                        <span class="prep-step-number">3</span>
+                        <span class="prep-step-content"><strong>Boil Eggs:</strong> Hard boil 18-24 eggs at once. Store
+                            in fridge with shells on for freshness (up to 7 days).</span>
+                    </div>
+
+                    <div class="prep-step">
+                        <span class="prep-step-number">4</span>
+                        <span class="prep-step-content"><strong>Prep Vegetables:</strong> Wash and chop broccoli, bell
+                            peppers, and spinach. Store in airtight containers. Keep vegetables separate from proteins
+                            to maintain freshness.</span>
+                    </div>
+
+                    <div class="prep-step">
+                        <span class="prep-step-number">5</span>
+                        <span class="prep-step-content"><strong>Portion Snacks:</strong> Pre-measure Greek yogurt into
+                            bowls, portion out protein powder into shaker bottles, prep fruit (bananas, apples, berries)
+                            into grab-and-go bags.</span>
+                    </div>
+
+                    <div class="prep-step">
+                        <span class="prep-step-number">6</span>
+                        <span class="prep-step-content"><strong>Assemble Meal Containers:</strong> Use 7 sets of
+                            containers. Each should have: 1 protein portion, 1 carb portion, 1-2 cups vegetables. Label
+                            with day of week.</span>
+                    </div>
+
+                    <div class="prep-step">
+                        <span class="prep-step-number">7</span>
+                        <span class="prep-step-content"><strong>Storage:</strong> Keep next 3 days of meals in the
+                            fridge, freeze the rest. Thaw frozen meals 24 hours before eating. Proteins stay fresh 4-5
+                            days in fridge, 2-3 months frozen.</span>
+                    </div>
+
+                    <div class="prep-tips">
+                        <div class="prep-tips-title">💡 Pro Tips for Success</div>
+                        <ul>
+                            <li><strong>Time-Saving:</strong> Prep on Sunday afternoon. Takes 2-3 hours but saves 1+
+                                hour daily during the week.</li>
+                            <li><strong>Calorie Control:</strong> Use a food scale. Weigh proteins raw, carbs cooked.
+                                Accuracy = results.</li>
+                            <li><strong>Flavor Variety:</strong> Rotate seasonings daily (BBQ, teriyaki, lemon pepper,
+                                cajun, garlic herb).</li>
+                            <li><strong>Stay Consistent:</strong> Prep same meals weekly for first month. Once routine
+                                is built, experiment with variety.</li>
+                            <li><strong>Meal Timing:</strong> Eat every 3-4 hours. Space out protein intake (30-40g per
+                                meal) for optimal muscle retention.</li>
+                            <li><strong>Hydration:</strong> Drink 1 gallon of water daily. Fill a gallon jug each
+                                morning and finish it by bedtime.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="card">
+            <h2 class="card-title">📜 History</h2>
+            <p class="card-subtitle">Your daily logs and progress over time</p>
+
+            <div class="table-container">
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Weight</th>
+                            <th>Δ</th>
+                            <th>Calories</th>
+                            <th>Protein</th>
+                            <th>Steps</th>
+                            <th>Workout</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">No logs yet. Start tracking above!</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Weight Chart -->
+        <div class="card">
+            <h2 class="card-title">📈 Weight Trend</h2>
+            <p class="card-subtitle">Visual progress of your weight over time</p>
+
+            <div class="chart-container">
+                <canvas id="weightChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ===========================
+        // DATA MANAGEMENT
+        // ===========================
+
+        /**
+         * Load all data from localStorage
+         */
+        function loadData() {
+            const data = localStorage.getItem('japanCutData');
+            if (data) {
+                return JSON.parse(data);
+            }
+            // Default structure
+            return {
+                settings: {
+                    startWeight: 260,
+                    goalWeight: 200,
+                    startDate: new Date().toISOString().split('T')[0],
+                    goalDate: '2025-05-15', // May 2025
+                    calorieTarget: 1750,
+                    proteinTarget: 180,
+                    stepTarget: 12000
+                },
+                entries: [],
+                meals: [],
+                dailyMeals: {}
+            };
+        }
+
+        /**
+         * Save all data to localStorage
+         */
+        function saveData(data) {
+            localStorage.setItem('japanCutData', JSON.stringify(data));
+        }
+
+        /**
+         * Show toast notification
+         */
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // ===========================
+        // SETTINGS MANAGEMENT
+        // ===========================
+
+        /**
+         * Load settings into form
+         */
+        function loadSettings() {
+            const data = loadData();
+            const s = data.settings;
+
+            document.getElementById('startWeight').value = s.startWeight;
+            document.getElementById('goalWeight').value = s.goalWeight;
+            document.getElementById('startDate').value = s.startDate;
+            document.getElementById('goalDate').value = s.goalDate;
+            document.getElementById('calorieTarget').value = s.calorieTarget;
+            document.getElementById('proteinTarget').value = s.proteinTarget;
+            document.getElementById('stepTarget').value = s.stepTarget;
+        }
+
+        /**
+         * Save plan settings
+         */
+        function savePlanSettings() {
+            const data = loadData();
+
+            data.settings = {
+                startWeight: parseFloat(document.getElementById('startWeight').value),
+                goalWeight: parseFloat(document.getElementById('goalWeight').value),
+                startDate: document.getElementById('startDate').value,
+                goalDate: document.getElementById('goalDate').value,
+                calorieTarget: parseInt(document.getElementById('calorieTarget').value),
+                proteinTarget: parseInt(document.getElementById('proteinTarget').value),
+                stepTarget: parseInt(document.getElementById('stepTarget').value)
+            };
+
+            saveData(data);
+            showToast('Settings saved! 💾');
+            updateDashboard();
+        }
+
+        /**
+         * Reset all data
+         */
+        function resetAllData() {
+            if (confirm('Are you sure you want to reset ALL data? This cannot be undone.')) {
+                localStorage.removeItem('japanCutData');
+                location.reload();
+            }
+        }
+
+        // ===========================
+        // DAILY LOG MANAGEMENT
+        // ===========================
+
+        /**
+         * Save daily log
+         */
+        function saveLog() {
+            const data = loadData();
+            const date = document.getElementById('logDate').value;
+            const weight = parseFloat(document.getElementById('logWeight').value);
+            const calories = parseInt(document.getElementById('logCalories').value);
+            const protein = parseInt(document.getElementById('logProtein').value);
+            const steps = parseInt(document.getElementById('logSteps').value);
+            const workout = document.getElementById('logWorkout').value === 'true';
+
+            if (!date || !weight) {
+                alert('Please enter at least a date and weight!');
+                return;
+            }
+
+            // Check if entry exists for this date
+            const existingIndex = data.entries.findIndex(e => e.date === date);
+
+            const entry = {
+                date,
+                weight,
+                calories: calories || 0,
+                protein: protein || 0,
+                steps: steps || 0,
+                workout
+            };
+
+            if (existingIndex >= 0) {
+                // Update existing entry
+                data.entries[existingIndex] = entry;
+            } else {
+                // Add new entry
+                data.entries.push(entry);
+            }
+
+            // Sort entries by date
+            data.entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            saveData(data);
+            showToast('Log saved! 💪');
+
+            // Clear form
+            document.getElementById('logCalories').value = '';
+            document.getElementById('logProtein').value = '';
+            document.getElementById('logSteps').value = '';
+            document.getElementById('logWorkout').value = 'false';
+
+            // Update UI
+            updateDashboard();
+            updateHistoryTable();
+            drawChart();
+        }
+
+        /**
+         * Update history table
+         */
+        function updateHistoryTable() {
+            const data = loadData();
+            const tbody = document.getElementById('historyBody');
+
+            if (data.entries.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No logs yet. Start tracking above!</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+
+            data.entries.forEach(entry => {
+                const change = (data.settings.startWeight - entry.weight).toFixed(1);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatDate(entry.date)}</td>
+                    <td>${entry.weight} lb</td>
+                    <td style="color: ${change >= 0 ? '#86efac' : '#fca5a5'}">${change >= 0 ? '-' : '+'}${Math.abs(change)} lb</td>
+                    <td>${entry.calories || '--'}</td>
+                    <td>${entry.protein || '--'}g</td>
+                    <td>${entry.steps ? entry.steps.toLocaleString() : '--'}</td>
+                    <td><span class="badge ${entry.workout ? 'yes' : 'no'}">${entry.workout ? 'Yes' : 'No'}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        /**
+         * Format date for display
+         */
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        // ===========================
+        // DASHBOARD / PROGRESS
+        // ===========================
+
+        /**
+         * Update progress dashboard
+         */
+        function updateDashboard() {
+            const data = loadData();
+            const settings = data.settings;
+            const entries = data.entries;
+
+            // Current weight (from latest entry)
+            let currentWeight = settings.startWeight;
+            if (entries.length > 0) {
+                currentWeight = entries[entries.length - 1].weight;
+            }
+            document.getElementById('currentWeight').textContent = currentWeight.toFixed(1);
+
+            // Total lost
+            const totalLost = settings.startWeight - currentWeight;
+            document.getElementById('totalLost').textContent = totalLost.toFixed(1);
+
+            // Days until goal
+            const today = new Date();
+            const goalDate = new Date(settings.goalDate + 'T00:00:00');
+            const daysUntilGoal = Math.max(0, Math.ceil((goalDate - today) / (1000 * 60 * 60 * 24)));
+            document.getElementById('daysUntilGoal').textContent = daysUntilGoal;
+
+            // Needed loss per week
+            const remainingLoss = currentWeight - settings.goalWeight;
+            const weeksRemaining = daysUntilGoal / 7;
+            const neededLossPerWeek = weeksRemaining > 0 ? (remainingLoss / weeksRemaining) : 0;
+            document.getElementById('neededLossPerWeek').textContent = neededLossPerWeek > 0 ? neededLossPerWeek.toFixed(1) : '--';
+
+            // Average loss per week (from logs)
+            let avgLossPerWeek = 0;
+            if (entries.length >= 2) {
+                const firstEntry = entries[0];
+                const lastEntry = entries[entries.length - 1];
+                const firstDate = new Date(firstEntry.date + 'T00:00:00');
+                const lastDate = new Date(lastEntry.date + 'T00:00:00');
+                const daysDiff = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
+                const weeksDiff = daysDiff / 7;
+                if (weeksDiff > 0) {
+                    avgLossPerWeek = (firstEntry.weight - lastEntry.weight) / weeksDiff;
+                }
+            }
+            document.getElementById('avgLossPerWeek').textContent = avgLossPerWeek > 0 ? avgLossPerWeek.toFixed(1) : '--';
+
+            // Projected weight at goal date
+            let projectedWeight = currentWeight;
+            if (avgLossPerWeek > 0 && daysUntilGoal > 0) {
+                projectedWeight = currentWeight - (avgLossPerWeek * weeksRemaining);
+            }
+            document.getElementById('projectedWeight').textContent = avgLossPerWeek > 0 ? projectedWeight.toFixed(1) : '--';
+
+            // Status message
+            const statusMsg = document.getElementById('statusMessage');
+            if (entries.length === 0) {
+                statusMsg.className = 'status-message';
+                statusMsg.textContent = 'Enter your settings and log your first entry to see progress!';
+            } else if (projectedWeight <= settings.goalWeight) {
+                statusMsg.className = 'status-message success';
+                statusMsg.textContent = `🎉 You're on track! Keep up the great work. Projected to reach ${settings.goalWeight} lb by goal date.`;
+            } else if (projectedWeight <= settings.goalWeight + 5) {
+                statusMsg.className = 'status-message warning';
+                statusMsg.textContent = `⚠️ Slightly behind pace. Tighten calories or increase activity to hit your goal.`;
+            } else {
+                statusMsg.className = 'status-message warning';
+                statusMsg.textContent = `⚠️ Behind pace. Current trajectory: ${projectedWeight.toFixed(1)} lb at goal date. Need ${neededLossPerWeek.toFixed(1)} lb/week.`;
+            }
+
+            // Update meal plan targets
+            document.getElementById('targetCalories').textContent = settings.calorieTarget;
+            document.getElementById('targetProtein').textContent = settings.proteinTarget;
+        }
+
+        // ===========================
+        // MEAL MANAGEMENT
+        // ===========================
+
+        /**
+         * Add meal to library
+         */
+        function addMeal() {
+            const name = document.getElementById('mealName').value.trim();
+            const calories = parseInt(document.getElementById('mealCalories').value);
+            const protein = parseInt(document.getElementById('mealProtein').value);
+            const notes = document.getElementById('mealNotes').value.trim();
+
+            if (!name || !calories || !protein) {
+                alert('Please enter meal name, calories, and protein!');
+                return;
+            }
+
+            const data = loadData();
+            const meal = {
+                id: Date.now().toString(),
+                name,
+                calories,
+                protein,
+                notes
+            };
+
+            data.meals.push(meal);
+            saveData(data);
+            showToast('Meal added! 🍱');
+
+            // Clear form
+            document.getElementById('mealName').value = '';
+            document.getElementById('mealCalories').value = '';
+            document.getElementById('mealProtein').value = '';
+            document.getElementById('mealNotes').value = '';
+
+            updateMealLibrary();
+            updateMealSelect();
+        }
+
+        /**
+         * Delete meal from library
+         */
+        function deleteMeal(mealId) {
+            if (!confirm('Delete this meal?')) return;
+
+            const data = loadData();
+            data.meals = data.meals.filter(m => m.id !== mealId);
+
+            // Remove from all daily plans
+            Object.keys(data.dailyMeals).forEach(date => {
+                data.dailyMeals[date] = data.dailyMeals[date].filter(id => id !== mealId);
+            });
+
+            saveData(data);
+            showToast('Meal deleted! 🗑️');
+            updateMealLibrary();
+            updateMealSelect();
+            updateDailyMeals();
+        }
+
+        /**
+         * Update meal library display
+         */
+        function updateMealLibrary() {
+            const data = loadData();
+            const container = document.getElementById('mealLibrary');
+
+            if (data.meals.length === 0) {
+                container.innerHTML = '<div class="empty-state">No meals saved yet. Add your first meal above!</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            data.meals.forEach(meal => {
+                const div = document.createElement('div');
+                div.className = 'meal-item';
+                div.innerHTML = `
+                    <div class="meal-info">
+                        <div class="meal-name">${meal.name}</div>
+                        <div class="meal-stats">${meal.calories} cal • ${meal.protein}g protein${meal.notes ? ' • ' + meal.notes : ''}</div>
+                    </div>
+                    <div class="meal-actions">
+                        <button class="btn-icon" onclick="deleteMeal('${meal.id}')" title="Delete">🗑</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        /**
+         * Update meal select dropdown
+         */
+        function updateMealSelect() {
+            const data = loadData();
+            const select = document.getElementById('mealSelect');
+
+            select.innerHTML = '<option value="">Select a meal...</option>';
+            data.meals.forEach(meal => {
+                const option = document.createElement('option');
+                option.value = meal.id;
+                option.textContent = `${meal.name} (${meal.calories} cal, ${meal.protein}g)`;
+                select.appendChild(option);
+            });
+        }
+
+        /**
+         * Add meal to today's plan
+         */
+        function addMealToDay() {
+            const mealId = document.getElementById('mealSelect').value;
+            if (!mealId) {
+                alert('Please select a meal!');
+                return;
+            }
+
+            const date = document.getElementById('logDate').value;
+            if (!date) {
+                alert('Please select a date in the daily log section first!');
+                return;
+            }
+
+            const data = loadData();
+            if (!data.dailyMeals[date]) {
+                data.dailyMeals[date] = [];
+            }
+
+            data.dailyMeals[date].push(mealId);
+            saveData(data);
+            showToast('Meal added to plan! 📅');
+
+            document.getElementById('mealSelect').value = '';
+            updateDailyMeals();
+        }
+
+        /**
+         * Remove meal from day
+         */
+        function removeMealFromDay(date, index) {
+            const data = loadData();
+            data.dailyMeals[date].splice(index, 1);
+
+            if (data.dailyMeals[date].length === 0) {
+                delete data.dailyMeals[date];
+            }
+
+            saveData(data);
+            showToast('Meal removed! 🗑️');
+            updateDailyMeals();
+        }
+
+        /**
+         * Update daily meals display
+         */
+        function updateDailyMeals() {
+            const data = loadData();
+            const date = document.getElementById('logDate').value;
+            const container = document.getElementById('dailyMeals');
+            const summary = document.getElementById('dailyMealSummary');
+
+            if (!date || !data.dailyMeals[date] || data.dailyMeals[date].length === 0) {
+                container.innerHTML = '<div class="empty-state">No meals planned for today</div>';
+                summary.style.display = 'none';
+                return;
+            }
+
+            container.innerHTML = '';
+            let totalCalories = 0;
+            let totalProtein = 0;
+
+            data.dailyMeals[date].forEach((mealId, index) => {
+                const meal = data.meals.find(m => m.id === mealId);
+                if (!meal) return;
+
+                totalCalories += meal.calories;
+                totalProtein += meal.protein;
+
+                const div = document.createElement('div');
+                div.className = 'meal-item';
+                div.innerHTML = `
+                    <div class="meal-info">
+                        <div class="meal-name">${meal.name}</div>
+                        <div class="meal-stats">${meal.calories} cal • ${meal.protein}g protein</div>
+                    </div>
+                    <div class="meal-actions">
+                        <button class="btn-icon" onclick="removeMealFromDay('${date}', ${index})" title="Remove">🗑</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            // Update summary
+            document.getElementById('dailyTotalCalories').textContent = totalCalories;
+            document.getElementById('dailyTotalProtein').textContent = totalProtein;
+            summary.style.display = 'block';
+
+            // Auto-fill log if empty
+            if (!document.getElementById('logCalories').value) {
+                document.getElementById('logCalories').value = totalCalories;
+            }
+            if (!document.getElementById('logProtein').value) {
+                document.getElementById('logProtein').value = totalProtein;
+            }
+        }
+
+        // ===========================
+        // CHART
+        // ===========================
+
+        /**
+         * Draw weight trend chart
+         */
+        function drawChart() {
+            const data = loadData();
+            const canvas = document.getElementById('weightChart');
+            const ctx = canvas.getContext('2d');
+
+            // Set actual canvas size
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = 250 * dpr;
+            ctx.scale(dpr, dpr);
+
+            const width = rect.width;
+            const height = 250;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            if (data.entries.length === 0) {
+                ctx.fillStyle = '#64748b';
+                ctx.font = '14px system-ui';
+                ctx.textAlign = 'center';
+                ctx.fillText('No data to display yet', width / 2, height / 2);
+                return;
+            }
+
+            // Prepare data
+            const entries = [...data.entries];
+            const weights = entries.map(e => e.weight);
+            const minWeight = Math.min(...weights, data.settings.goalWeight) - 5;
+            const maxWeight = Math.max(...weights, data.settings.startWeight) + 5;
+
+            const padding = 40;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+
+            // Draw axes
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+
+            // Draw goal line
+            const goalY = height - padding - ((data.settings.goalWeight - minWeight) / (maxWeight - minWeight)) * chartHeight;
+            ctx.strokeStyle = '#22c55e';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, goalY);
+            ctx.lineTo(width - padding, goalY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw goal label
+            ctx.fillStyle = '#86efac';
+            ctx.font = '12px system-ui';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Goal: ${data.settings.goalWeight} lb`, padding + 5, goalY - 5);
+
+            // Draw weight line
+            ctx.strokeStyle = '#60a5fa';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            entries.forEach((entry, i) => {
+                const x = padding + (i / (entries.length - 1 || 1)) * chartWidth;
+                const y = height - padding - ((entry.weight - minWeight) / (maxWeight - minWeight)) * chartHeight;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.stroke();
+
+            // Draw data points
+            entries.forEach((entry, i) => {
+                const x = padding + (i / (entries.length - 1 || 1)) * chartWidth;
+                const y = height - padding - ((entry.weight - minWeight) / (maxWeight - minWeight)) * chartHeight;
+
+                ctx.fillStyle = '#3b82f6';
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Label first and last points
+                if (i === 0 || i === entries.length - 1) {
+                    ctx.fillStyle = '#93c5fd';
+                    ctx.font = '11px system-ui';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`${entry.weight} lb`, x, y - 12);
+                }
+            });
+
+            // Y-axis labels
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '11px system-ui';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 4; i++) {
+                const weight = minWeight + (maxWeight - minWeight) * (i / 4);
+                const y = height - padding - (i / 4) * chartHeight;
+                ctx.fillText(weight.toFixed(0), padding - 10, y + 4);
+            }
+        }
+
+        // ===========================
+        // PRE-BUILT MEAL PLANS
+        // ===========================
+
+        /**
+         * Get the 7-day aggressive meal plan
+         */
+        function getMealPlan() {
+            return [
+                {
+                    day: 'Monday',
+                    workout: true,
+                    meals: {
+                        breakfast: '4 whole eggs scrambled, 2 slices whole wheat toast, 1 banana',
+                        lunch: '8 oz grilled chicken breast, 1.5 cups white rice, 1 cup steamed broccoli',
+                        dinner: '8 oz lean ground turkey, 1 cup sweet potato, mixed green salad',
+                        snacks: '1 cup Greek yogurt (0% fat), 1 scoop whey protein shake, 1 apple'
+                    },
+                    calories: 1780,
+                    protein: 185
+                },
+                {
+                    day: 'Tuesday',
+                    workout: false,
+                    meals: {
+                        breakfast: '1 cup oatmeal with 1 scoop protein powder, 10 almonds',
+                        lunch: '8 oz baked chicken thighs, 1 cup jasmine rice, 1 cup roasted bell peppers',
+                        dinner: '8 oz tilapia, 6 oz sweet potato, 2 cups steamed spinach',
+                        snacks: '2 hard boiled eggs, 1 protein shake, 1 orange'
+                    },
+                    calories: 1690,
+                    protein: 178
+                },
+                {
+                    day: 'Wednesday',
+                    workout: true,
+                    meals: {
+                        breakfast: '3 whole eggs + 3 egg whites omelet, 1 cup mixed berries',
+                        lunch: '8 oz lean beef (93/7), 1.5 cups white rice, 1 cup green beans',
+                        dinner: '8 oz grilled chicken, 1 cup quinoa, caesar salad (light dressing)',
+                        snacks: '1 cup cottage cheese (low fat), 1 protein shake, 1 banana'
+                    },
+                    calories: 1820,
+                    protein: 195
+                },
+                {
+                    day: 'Thursday',
+                    workout: false,
+                    meals: {
+                        breakfast: '4 turkey sausage links, 2 whole grain waffles, sugar-free syrup',
+                        lunch: '8 oz pork tenderloin, 1 cup basmati rice, 1 cup steamed carrots',
+                        dinner: '8 oz shrimp, 1 large sweet potato, asparagus',
+                        snacks: '1 cup Greek yogurt, 1 scoop whey protein, handful of grapes'
+                    },
+                    calories: 1720,
+                    protein: 182
+                },
+                {
+                    day: 'Friday',
+                    workout: true,
+                    meals: {
+                        breakfast: '4 whole eggs, 2 turkey bacon slices, 1 slice whole wheat toast',
+                        lunch: '8 oz grilled salmon, 1.5 cups wild rice, roasted brussels sprouts',
+                        dinner: '8 oz chicken breast, 1 cup pasta (whole wheat), marinara sauce, side salad',
+                        snacks: '2 string cheese, 1 protein shake with almond milk, 1 apple'
+                    },
+                    calories: 1790,
+                    protein: 188
+                },
+                {
+                    day: 'Saturday',
+                    workout: false,
+                    meals: {
+                        breakfast: '1 cup Greek yogurt with granola and berries, 2 boiled eggs',
+                        lunch: '8 oz ground turkey (93/7), 1 cup brown rice, stir-fry vegetables',
+                        dinner: '8 oz sirloin steak, 6 oz red potato, grilled zucchini',
+                        snacks: '1 protein shake, 1 banana, 15 almonds'
+                    },
+                    calories: 1740,
+                    protein: 180
+                },
+                {
+                    day: 'Sunday',
+                    workout: false,
+                    meals: {
+                        breakfast: 'Protein pancakes (1 scoop powder, 2 eggs, oats), sugar-free syrup',
+                        lunch: '8 oz chicken breast, 1.5 cups white rice, 1 cup broccoli',
+                        dinner: '8 oz cod, 1 cup couscous, roasted cauliflower',
+                        snacks: '1 cup cottage cheese, 1 protein shake, mixed berries'
+                    },
+                    calories: 1680,
+                    protein: 175
+                }
+            ];
+        }
+
+        /**
+         * Render meal plan cards
+         */
+        function renderMealPlan() {
+            const mealPlan = getMealPlan();
+            const container = document.getElementById('mealPlanGrid');
+            container.innerHTML = '';
+
+            mealPlan.forEach((day, index) => {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.innerHTML = `
+                    <div class="day-header">
+                        <div class="day-name">${day.day}</div>
+                        ${day.workout ? '<div class="day-workout">💪 Workout Day</div>' : ''}
+                    </div>
+                    <div class="meal-section">
+                        <div class="meal-label">Breakfast</div>
+                        <div class="meal-content">${day.meals.breakfast}</div>
+                    </div>
+                    <div class="meal-section">
+                        <div class="meal-label">Lunch</div>
+                        <div class="meal-content">${day.meals.lunch}</div>
+                    </div>
+                    <div class="meal-section">
+                        <div class="meal-label">Dinner</div>
+                        <div class="meal-content">${day.meals.dinner}</div>
+                    </div>
+                    <div class="meal-section">
+                        <div class="meal-label">Snacks</div>
+                        <div class="meal-content">${day.meals.snacks}</div>
+                    </div>
+                    <div class="day-totals">
+                        <div class="day-total-item">
+                            <strong>${day.calories}</strong> cal
+                        </div>
+                        <div class="day-total-item">
+                            <strong>${day.protein}g</strong> protein
+                        </div>
+                    </div>
+                    <div class="day-actions">
+                        <button class="btn btn-add-day" onclick="addMealPlanToLog(${index})">
+                            ➕ Add to My Log
+                        </button>
+                    </div>
+                `;
+                container.appendChild(dayCard);
+            });
+        }
+
+        /**
+         * Add a meal plan day to the daily log
+         */
+        function addMealPlanToLog(dayIndex) {
+            const mealPlan = getMealPlan();
+            const selectedDay = mealPlan[dayIndex];
+
+            // Get the current log date
+            const logDate = document.getElementById('logDate').value;
+            if (!logDate) {
+                alert('Please select a date in the Daily Log section first!');
+                return;
+            }
+
+            // Auto-fill calories and protein (don't touch weight or steps)
+            document.getElementById('logCalories').value = selectedDay.calories;
+            document.getElementById('logProtein').value = selectedDay.protein;
+            document.getElementById('logWorkout').value = selectedDay.workout ? 'true' : 'false';
+
+            showToast(`${selectedDay.day}'s meal plan added! (${selectedDay.calories} cal, ${selectedDay.protein}g protein)`);
+
+            // Scroll to daily log
+            document.getElementById('logCalories').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        /**
+         * Generate grocery list from meal plan
+         */
+        function generateGroceryList() {
+            const groceryList = {
+                'Proteins': [
+                    '5-6 lbs chicken breast',
+                    '2 lbs chicken thighs',
+                    '2 lbs lean ground turkey (93/7)',
+                    '1 lb ground beef (93/7)',
+                    '1 lb pork tenderloin',
+                    '1 lb tilapia or cod',
+                    '1 lb salmon',
+                    '1 lb shrimp',
+                    '1 lb sirloin steak',
+                    '3 dozen eggs',
+                    '2 lbs Greek yogurt (0% fat)',
+                    '1 lb cottage cheese (low fat)',
+                    '2-3 tubs whey protein powder'
+                ],
+                'Carbs': [
+                    '5 lbs white rice',
+                    '2 lbs brown rice',
+                    '1 lb jasmine rice',
+                    '1 lb quinoa',
+                    '1 box whole wheat pasta',
+                    '1 lb oatmeal',
+                    '5-6 large sweet potatoes',
+                    '3-4 red potatoes',
+                    '1 loaf whole wheat bread',
+                    '1 box whole grain waffles'
+                ],
+                'Vegetables': [
+                    '7 bags/bunches broccoli',
+                    '3 bags spinach',
+                    '2 lbs green beans',
+                    '2 lbs bell peppers',
+                    '2 lbs asparagus',
+                    '1 bag brussels sprouts',
+                    '1 lb carrots',
+                    '2 bags mixed salad greens',
+                    '1 cauliflower',
+                    '2 zucchini'
+                ],
+                'Fruits': [
+                    '7 bananas',
+                    '7 apples',
+                    '3 oranges',
+                    '2 lbs mixed berries',
+                    '1 lb grapes'
+                ],
+                'Other': [
+                    '1 bottle olive oil',
+                    '1 jar marinara sauce',
+                    '1 bottle light caesar dressing',
+                    'Seasonings: salt, pepper, garlic powder, paprika',
+                    '1 carton almond milk',
+                    '1 bag almonds',
+                    '1 box granola',
+                    '4 turkey bacon packages',
+                    '1 pack turkey sausage',
+                    '2 packs string cheese',
+                    'Sugar-free syrup'
+                ]
+            };
+
+            // Display grocery list
+            const display = document.getElementById('groceryListDisplay');
+            display.innerHTML = '';
+
+            Object.keys(groceryList).forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.innerHTML = `<div class="grocery-category">📦 ${category}</div>`;
+
+                const itemsDiv = document.createElement('div');
+                itemsDiv.className = 'grocery-list';
+
+                groceryList[category].forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'grocery-item';
+                    itemDiv.textContent = item;
+                    itemsDiv.appendChild(itemDiv);
+                });
+
+                display.appendChild(categoryDiv);
+                display.appendChild(itemsDiv);
+            });
+
+            // Show the grocery list card
+            document.getElementById('groceryListCard').style.display = 'block';
+
+            showToast('Grocery list generated! 🛒');
+
+            // Scroll to grocery list
+            document.getElementById('groceryListCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        /**
+         * Toggle collapsible sections
+         */
+        function toggleCollapsible(sectionId) {
+            const content = document.getElementById(sectionId + 'Content');
+            const toggle = document.getElementById(sectionId + 'Toggle');
+
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                toggle.classList.remove('open');
+            } else {
+                content.classList.add('open');
+                toggle.classList.add('open');
+            }
+        }
+
+        // ===========================
+        // INITIALIZATION
+        // ===========================
+
+        /**
+         * Initialize app on load
+         */
+        function initializeApp() {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('logDate').value = today;
+
+            // Load settings
+            loadSettings();
+
+            // Load last weight for log prefill
+            const data = loadData();
+            if (data.entries.length > 0) {
+                const lastWeight = data.entries[data.entries.length - 1].weight;
+                document.getElementById('logWeight').value = lastWeight;
+            }
+
+            // Update all UI
+            updateDashboard();
+            updateHistoryTable();
+            updateMealLibrary();
+            updateMealSelect();
+            updateDailyMeals();
+            drawChart();
+            renderMealPlan(); // Render the 7-day meal plan
+
+            // Listen for date changes in log to update meal plan
+            document.getElementById('logDate').addEventListener('change', updateDailyMeals);
+        }
+
+        // Run on page load
+        window.addEventListener('load', initializeApp);
+
+        // Redraw chart on window resize
+        window.addEventListener('resize', () => {
+            setTimeout(drawChart, 100);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,28 @@
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary Files
+*.tmp
+*.log
+
+# Old backup files (if any)
+*.bak
+*.old
+
+# Node modules (if you ever add npm)
+node_modules/
+
+# Generated icons (users will generate their own)
+icons/*.png
+
+# Keep icons folder but ignore PNG files
+!icons/.gitkeep
