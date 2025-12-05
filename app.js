@@ -51,8 +51,7 @@ function loadData() {
             stepTarget: 12000
         },
         entries: [],
-        meals: [],
-        dailyMeals: {}
+        weeklyMeal: null
     };
 }
 
@@ -266,14 +265,33 @@ function updateDashboard() {
 }
 
 // ===========================
-// MEAL MANAGEMENT
+// WEEKLY MEAL MANAGEMENT
 // ===========================
 
-function addMeal() {
-    const name = document.getElementById('mealName').value.trim();
-    const calories = parseInt(document.getElementById('mealCalories').value);
-    const protein = parseInt(document.getElementById('mealProtein').value);
-    const notes = document.getElementById('mealNotes').value.trim();
+// Preview image as user types URL
+document.addEventListener('DOMContentLoaded', () => {
+    const imageInput = document.getElementById('weeklyMealImage');
+    if (imageInput) {
+        imageInput.addEventListener('input', (e) => {
+            const url = e.target.value.trim();
+            const preview = document.getElementById('imagePreview');
+
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                preview.innerHTML = `<img src="${url}" onerror="this.parentElement.style.display='none'" onload="this.parentElement.classList.add('show')">`;
+            } else {
+                preview.innerHTML = '';
+                preview.classList.remove('show');
+            }
+        });
+    }
+});
+
+function saveWeeklyMeal() {
+    const name = document.getElementById('weeklyMealName').value.trim();
+    const imageUrl = document.getElementById('weeklyMealImage').value.trim();
+    const calories = parseInt(document.getElementById('weeklyMealCalories').value);
+    const protein = parseInt(document.getElementById('weeklyMealProtein').value);
+    const ingredients = document.getElementById('weeklyMealIngredients').value.trim();
 
     if (!name || !calories || !protein) {
         alert('Please enter meal name, calories, and protein!');
@@ -281,436 +299,178 @@ function addMeal() {
     }
 
     const data = loadData();
-    const meal = {
-        id: Date.now().toString(),
+    data.weeklyMeal = {
         name,
+        imageUrl,
         calories,
         protein,
-        notes
+        ingredients
     };
 
-    data.meals.push(meal);
     saveData(data);
-    showToast('Meal added! 🍱');
+    showToast('Weekly meal saved! 🍱');
 
-    document.getElementById('mealName').value = '';
-    document.getElementById('mealCalories').value = '';
-    document.getElementById('mealProtein').value = '';
-    document.getElementById('mealNotes').value = '';
-
-    updateMealLibrary();
-    updateMealSelect();
+    displaySavedMeal();
 }
 
-function deleteMeal(mealId) {
-    if (!confirm('Delete this meal?')) return;
-
+function displaySavedMeal() {
     const data = loadData();
-    data.meals = data.meals.filter(m => m.id !== mealId);
+    const card = document.getElementById('savedMealCard');
+    const display = document.getElementById('savedMealDisplay');
 
-    Object.keys(data.dailyMeals).forEach(date => {
-        data.dailyMeals[date] = data.dailyMeals[date].filter(id => id !== mealId);
-    });
-
-    saveData(data);
-    showToast('Meal deleted! 🗑️');
-    updateMealLibrary();
-    updateMealSelect();
-    updateDailyMeals();
-}
-
-function updateMealLibrary() {
-    const data = loadData();
-    const container = document.getElementById('mealLibrary');
-
-    if (data.meals.length === 0) {
-        container.innerHTML = '<div class="empty-state">No meals saved yet</div>';
+    if (!data.weeklyMeal) {
+        card.style.display = 'none';
         return;
     }
 
-    container.innerHTML = '';
-    data.meals.forEach(meal => {
-        const div = document.createElement('div');
-        div.className = 'meal-item';
-        div.innerHTML = `
-            <div class="meal-info">
-                <div class="meal-name">${meal.name}</div>
-                <div class="meal-stats">${meal.calories} cal • ${meal.protein}g protein${meal.notes ? ' • ' + meal.notes : ''}</div>
+    const meal = data.weeklyMeal;
+    display.innerHTML = `
+        <div class="saved-meal-display">
+            ${meal.imageUrl ? `
+                <div class="meal-image-container">
+                    <img src="${meal.imageUrl}" alt="${meal.name}">
+                </div>
+            ` : ''}
+            <div class="meal-details">
+                <h3>${meal.name}</h3>
+                <div class="meal-macros">
+                    <div class="meal-macro-item">
+                        <div class="meal-macro-label">Calories</div>
+                        <div class="meal-macro-value">${meal.calories}</div>
+                    </div>
+                    <div class="meal-macro-item">
+                        <div class="meal-macro-label">Protein</div>
+                        <div class="meal-macro-value">${meal.protein}g</div>
+                    </div>
+                </div>
+                ${meal.ingredients ? `
+                    <div class="meal-ingredients">
+                        <div class="meal-ingredients-title">Ingredients</div>
+                        <div class="meal-ingredients-list">${meal.ingredients}</div>
+                    </div>
+                ` : ''}
+                <button class="btn btn-primary" style="margin-top: 16px;" onclick="useWeeklyMealInLog()">
+                    ➕ Use This Meal in Log
+                </button>
             </div>
-            <div class="meal-actions">
-                <button class="btn-icon" onclick="deleteMeal('${meal.id}')" title="Delete">🗑</button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
+        </div>
+    `;
+    card.style.display = 'block';
 }
 
-function updateMealSelect() {
+function useWeeklyMealInLog() {
     const data = loadData();
-    const select = document.getElementById('mealSelect');
+    if (!data.weeklyMeal) return;
 
-    select.innerHTML = '<option value="">Select a meal...</option>';
-    data.meals.forEach(meal => {
-        const option = document.createElement('option');
-        option.value = meal.id;
-        option.textContent = `${meal.name} (${meal.calories} cal, ${meal.protein}g)`;
-        select.appendChild(option);
-    });
-}
+    document.getElementById('logCalories').value = data.weeklyMeal.calories;
+    document.getElementById('logProtein').value = data.weeklyMeal.protein;
 
-function addMealToDay() {
-    const mealId = document.getElementById('mealSelect').value;
-    if (!mealId) {
-        alert('Please select a meal!');
-        return;
-    }
-
-    const date = document.getElementById('logDate').value;
-    if (!date) {
-        alert('Please select a date in the Log tab first!');
-        return;
-    }
-
-    const data = loadData();
-    if (!data.dailyMeals[date]) {
-        data.dailyMeals[date] = [];
-    }
-
-    data.dailyMeals[date].push(mealId);
-    saveData(data);
-    showToast('Meal added to plan! 📅');
-
-    document.getElementById('mealSelect').value = '';
-    updateDailyMeals();
-}
-
-function removeMealFromDay(date, index) {
-    const data = loadData();
-    data.dailyMeals[date].splice(index, 1);
-
-    if (data.dailyMeals[date].length === 0) {
-        delete data.dailyMeals[date];
-    }
-
-    saveData(data);
-    showToast('Meal removed! 🗑️');
-    updateDailyMeals();
-}
-
-function updateDailyMeals() {
-    const data = loadData();
-    const date = document.getElementById('logDate').value;
-    const container = document.getElementById('dailyMeals');
-    const summary = document.getElementById('dailyMealSummary');
-
-    if (!date || !data.dailyMeals[date] || data.dailyMeals[date].length === 0) {
-        container.innerHTML = '<div class="empty-state">No meals planned</div>';
-        summary.style.display = 'none';
-        return;
-    }
-
-    container.innerHTML = '';
-    let totalCalories = 0;
-    let totalProtein = 0;
-
-    data.dailyMeals[date].forEach((mealId, index) => {
-        const meal = data.meals.find(m => m.id === mealId);
-        if (!meal) return;
-
-        totalCalories += meal.calories;
-        totalProtein += meal.protein;
-
-        const div = document.createElement('div');
-        div.className = 'meal-item';
-        div.innerHTML = `
-            <div class="meal-info">
-                <div class="meal-name">${meal.name}</div>
-                <div class="meal-stats">${meal.calories} cal • ${meal.protein}g protein</div>
-            </div>
-            <div class="meal-actions">
-                <button class="btn-icon" onclick="removeMealFromDay('${date}', ${index})" title="Remove">🗑</button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
-
-    document.getElementById('dailyTotalCalories').textContent = totalCalories;
-    document.getElementById('dailyTotalProtein').textContent = totalProtein;
-    summary.style.display = 'block';
-
-    if (!document.getElementById('logCalories').value) {
-        document.getElementById('logCalories').value = totalCalories;
-    }
-    if (!document.getElementById('logProtein').value) {
-        document.getElementById('logProtein').value = totalProtein;
-    }
+    showToast(`Meal data added to log! (${data.weeklyMeal.calories} cal, ${data.weeklyMeal.protein}g protein)`);
+    switchTab('log');
 }
 
 // ===========================
-// PRE-BUILT MEAL PLANS
+// MEAL SUGGESTIONS
 // ===========================
 
-function getMealPlan() {
+function getMealSuggestions() {
     return [
         {
-            day: 'Monday',
-            workout: true,
-            meals: {
-                breakfast: '4 whole eggs scrambled, 2 slices whole wheat toast, 1 banana',
-                lunch: '8 oz grilled chicken breast, 1.5 cups white rice, 1 cup steamed broccoli',
-                dinner: '8 oz lean ground turkey, 1 cup sweet potato, mixed green salad',
-                snacks: '1 cup Greek yogurt (0% fat), 1 scoop whey protein shake, 1 apple'
-            },
-            calories: 1780,
-            protein: 185
+            name: 'Chicken Rice Bowl',
+            imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80',
+            calories: 1750,
+            protein: 185,
+            ingredients: '8 oz grilled chicken breast\n2 cups white rice\n1 cup steamed broccoli\n1 tbsp olive oil\nSeasonings (garlic, paprika, salt, pepper)'
         },
         {
-            day: 'Tuesday',
-            workout: false,
-            meals: {
-                breakfast: '1 cup oatmeal with 1 scoop protein powder, 10 almonds',
-                lunch: '8 oz baked chicken thighs, 1 cup jasmine rice, 1 cup roasted bell peppers',
-                dinner: '8 oz tilapia, 6 oz sweet potato, 2 cups steamed spinach',
-                snacks: '2 hard boiled eggs, 1 protein shake, 1 orange'
-            },
-            calories: 1690,
-            protein: 178
+            name: 'Salmon & Sweet Potato',
+            imageUrl: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&q=80',
+            calories: 1700,
+            protein: 170,
+            ingredients: '8 oz grilled salmon\n2 medium sweet potatoes\n2 cups asparagus\n1 tbsp butter\nLemon and herbs'
         },
         {
-            day: 'Wednesday',
-            workout: true,
-            meals: {
-                breakfast: '3 whole eggs + 3 egg whites omelet, 1 cup mixed berries',
-                lunch: '8 oz lean beef (93/7), 1.5 cups white rice, 1 cup green beans',
-                dinner: '8 oz grilled chicken, 1 cup quinoa, caesar salad (light dressing)',
-                snacks: '1 cup cottage cheese (low fat), 1 protein shake, 1 banana'
-            },
-            calories: 1820,
-            protein: 195
+            name: 'Beef Stir-Fry',
+            imageUrl: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=800&q=80',
+            calories: 1800,
+            protein: 190,
+            ingredients: '8 oz lean beef strips\n2 cups jasmine rice\nMixed vegetables (peppers, onions, carrots)\nSoy sauce and ginger\n1 tbsp sesame oil'
         },
         {
-            day: 'Thursday',
-            workout: false,
-            meals: {
-                breakfast: '4 turkey sausage links, 2 whole grain waffles, sugar-free syrup',
-                lunch: '8 oz pork tenderloin, 1 cup basmati rice, 1 cup steamed carrots',
-                dinner: '8 oz shrimp, 1 large sweet potato, asparagus',
-                snacks: '1 cup Greek yogurt, 1 scoop whey protein, handful of grapes'
-            },
+            name: 'Turkey Ground Bowl',
+            imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80',
             calories: 1720,
-            protein: 182
+            protein: 180,
+            ingredients: '8 oz lean ground turkey (93/7)\n2 cups brown rice\n1 cup black beans\nSalsa and Greek yogurt\nMixed greens'
         },
         {
-            day: 'Friday',
-            workout: true,
-            meals: {
-                breakfast: '4 whole eggs, 2 turkey bacon slices, 1 slice whole wheat toast',
-                lunch: '8 oz grilled salmon, 1.5 cups wild rice, roasted brussels sprouts',
-                dinner: '8 oz chicken breast, 1 cup pasta (whole wheat), marinara sauce, side salad',
-                snacks: '2 string cheese, 1 protein shake with almond milk, 1 apple'
-            },
-            calories: 1790,
-            protein: 188
+            name: 'Egg & Veggie Scramble',
+            imageUrl: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=800&q=80',
+            calories: 1650,
+            protein: 175,
+            ingredients: '6 whole eggs\n4 egg whites\n2 cups mixed vegetables\n4 slices whole wheat toast\n1 cup oatmeal with berries'
         },
         {
-            day: 'Saturday',
-            workout: false,
-            meals: {
-                breakfast: '1 cup Greek yogurt with granola and berries, 2 boiled eggs',
-                lunch: '8 oz ground turkey (93/7), 1 cup brown rice, stir-fry vegetables',
-                dinner: '8 oz sirloin steak, 6 oz red potato, grilled zucchini',
-                snacks: '1 protein shake, 1 banana, 15 almonds'
-            },
-            calories: 1740,
-            protein: 180
-        },
-        {
-            day: 'Sunday',
-            workout: false,
-            meals: {
-                breakfast: 'Protein pancakes (1 scoop powder, 2 eggs, oats), sugar-free syrup',
-                lunch: '8 oz chicken breast, 1.5 cups white rice, 1 cup broccoli',
-                dinner: '8 oz cod, 1 cup couscous, roasted cauliflower',
-                snacks: '1 cup cottage cheese, 1 protein shake, mixed berries'
-            },
-            calories: 1680,
-            protein: 175
+            name: 'Shrimp Pasta',
+            imageUrl: 'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=800&q=80',
+            calories: 1780,
+            protein: 172,
+            ingredients: '8 oz shrimp\n2.5 cups whole wheat pasta\nMarinara sauce\n2 cups spinach\nParmesan cheese (2 tbsp)'
         }
     ];
 }
 
-function renderMealPlan() {
-    const mealPlan = getMealPlan();
-    const container = document.getElementById('mealPlanGrid');
+function renderMealSuggestions() {
+    const suggestions = getMealSuggestions();
+    const container = document.getElementById('mealSuggestions');
     container.innerHTML = '';
 
-    mealPlan.forEach((day, index) => {
-        const dayCard = document.createElement('div');
-        dayCard.className = 'day-card';
-        dayCard.innerHTML = `
-            <div class="day-header">
-                <div class="day-name">${day.day}</div>
-                ${day.workout ? '<div class="day-workout">💪 Workout</div>' : ''}
-            </div>
-            <div class="meal-section">
-                <div class="meal-label">Breakfast</div>
-                <div class="meal-content">${day.meals.breakfast}</div>
-            </div>
-            <div class="meal-section">
-                <div class="meal-label">Lunch</div>
-                <div class="meal-content">${day.meals.lunch}</div>
-            </div>
-            <div class="meal-section">
-                <div class="meal-label">Dinner</div>
-                <div class="meal-content">${day.meals.dinner}</div>
-            </div>
-            <div class="meal-section">
-                <div class="meal-label">Snacks</div>
-                <div class="meal-content">${day.meals.snacks}</div>
-            </div>
-            <div class="day-totals">
-                <div class="day-total-item">
-                    <strong>${day.calories}</strong> cal
+    suggestions.forEach((meal) => {
+        const card = document.createElement('div');
+        card.className = 'suggestion-card';
+        card.innerHTML = `
+            <img src="${meal.imageUrl}" alt="${meal.name}" class="suggestion-image">
+            <div class="suggestion-content">
+                <div class="suggestion-title">${meal.name}</div>
+                <div class="suggestion-macros">
+                    <div class="suggestion-macro"><strong>${meal.calories}</strong> cal</div>
+                    <div class="suggestion-macro"><strong>${meal.protein}g</strong> protein</div>
                 </div>
-                <div class="day-total-item">
-                    <strong>${day.protein}g</strong> protein
-                </div>
-            </div>
-            <div class="day-actions">
-                <button class="btn btn-add-day" onclick="addMealPlanToLog(${index})">
-                    ➕ Add to My Log
+                <div class="suggestion-ingredients">${meal.ingredients}</div>
+                <button class="suggestion-button" onclick='useMealSuggestion(${JSON.stringify(meal).replace(/'/g, "&apos;")})'>
+                    ✅ Use This Meal
                 </button>
             </div>
         `;
-        container.appendChild(dayCard);
+        container.appendChild(card);
     });
 }
 
-function addMealPlanToLog(dayIndex) {
-    const mealPlan = getMealPlan();
-    const selectedDay = mealPlan[dayIndex];
-
-    const logDate = document.getElementById('logDate').value;
-    if (!logDate) {
-        alert('Please select a date in the Log tab first!');
-        return;
-    }
-
-    document.getElementById('logCalories').value = selectedDay.calories;
-    document.getElementById('logProtein').value = selectedDay.protein;
-    document.getElementById('logWorkout').value = selectedDay.workout ? 'true' : 'false';
-
-    showToast(`${selectedDay.day}'s meal plan added! (${selectedDay.calories} cal, ${selectedDay.protein}g protein)`);
-
-    switchTab('log');
-    setTimeout(() => {
-        document.getElementById('logCalories').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300);
-}
-
-function generateGroceryList() {
-    const groceryList = {
-        'Proteins': [
-            '5-6 lbs chicken breast',
-            '2 lbs chicken thighs',
-            '2 lbs lean ground turkey (93/7)',
-            '1 lb ground beef (93/7)',
-            '1 lb pork tenderloin',
-            '1 lb tilapia or cod',
-            '1 lb salmon',
-            '1 lb shrimp',
-            '1 lb sirloin steak',
-            '3 dozen eggs',
-            '2 lbs Greek yogurt (0% fat)',
-            '1 lb cottage cheese (low fat)',
-            '2-3 tubs whey protein powder'
-        ],
-        'Carbs': [
-            '5 lbs white rice',
-            '2 lbs brown rice',
-            '1 lb jasmine rice',
-            '1 lb quinoa',
-            '1 box whole wheat pasta',
-            '1 lb oatmeal',
-            '5-6 large sweet potatoes',
-            '3-4 red potatoes',
-            '1 loaf whole wheat bread',
-            '1 box whole grain waffles'
-        ],
-        'Vegetables': [
-            '7 bags/bunches broccoli',
-            '3 bags spinach',
-            '2 lbs green beans',
-            '2 lbs bell peppers',
-            '2 lbs asparagus',
-            '1 bag brussels sprouts',
-            '1 lb carrots',
-            '2 bags mixed salad greens',
-            '1 cauliflower',
-            '2 zucchini'
-        ],
-        'Fruits': [
-            '7 bananas',
-            '7 apples',
-            '3 oranges',
-            '2 lbs mixed berries',
-            '1 lb grapes'
-        ],
-        'Other': [
-            'Olive oil',
-            'Marinara sauce',
-            'Light caesar dressing',
-            'Seasonings (salt, pepper, garlic powder)',
-            'Almond milk',
-            'Almonds',
-            'Granola',
-            'Turkey bacon',
-            'Turkey sausage',
-            'String cheese',
-            'Sugar-free syrup'
-        ]
+function useMealSuggestion(meal) {
+    const data = loadData();
+    data.weeklyMeal = {
+        name: meal.name,
+        imageUrl: meal.imageUrl,
+        calories: meal.calories,
+        protein: meal.protein,
+        ingredients: meal.ingredients
     };
 
-    const display = document.getElementById('groceryListDisplay');
-    display.innerHTML = '';
+    saveData(data);
+    showToast(`${meal.name} set as your weekly meal! 🍱`);
 
-    Object.keys(groceryList).forEach(category => {
-        const categoryDiv = document.createElement('div');
-        categoryDiv.innerHTML = `<div class="grocery-category">📦 ${category}</div>`;
+    // Update the form in Meals tab
+    document.getElementById('weeklyMealName').value = meal.name;
+    document.getElementById('weeklyMealImage').value = meal.imageUrl;
+    document.getElementById('weeklyMealCalories').value = meal.calories;
+    document.getElementById('weeklyMealProtein').value = meal.protein;
+    document.getElementById('weeklyMealIngredients').value = meal.ingredients;
 
-        const itemsDiv = document.createElement('div');
-        itemsDiv.className = 'grocery-list';
+    // Display the saved meal
+    displaySavedMeal();
 
-        groceryList[category].forEach(item => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'grocery-item';
-            itemDiv.textContent = item;
-            itemsDiv.appendChild(itemDiv);
-        });
-
-        display.appendChild(categoryDiv);
-        display.appendChild(itemsDiv);
-    });
-
-    document.getElementById('groceryListCard').style.display = 'block';
-    showToast('Grocery list generated! 🛒');
-
-    setTimeout(() => {
-        document.getElementById('groceryListCard').scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-}
-
-function toggleCollapsible(sectionId) {
-    const content = document.getElementById(sectionId + 'Content');
-    const toggle = document.getElementById(sectionId + 'Toggle');
-
-    if (content.classList.contains('open')) {
-        content.classList.remove('open');
-        toggle.classList.remove('open');
-    } else {
-        content.classList.add('open');
-        toggle.classList.add('open');
-    }
+    // Switch to Meals tab
+    switchTab('meals');
 }
 
 // ===========================
@@ -823,6 +583,39 @@ function drawChart() {
 }
 
 // ===========================
+// QUICK MEAL DISPLAY IN LOG TAB
+// ===========================
+
+function displayQuickMeal() {
+    const data = loadData();
+    const card = document.getElementById('quickMealCard');
+    const display = document.getElementById('quickMealDisplay');
+
+    if (!data.weeklyMeal) {
+        card.style.display = 'none';
+        return;
+    }
+
+    const meal = data.weeklyMeal;
+    display.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            ${meal.imageUrl ? `
+                <img src="${meal.imageUrl}" alt="${meal.name}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px;">
+            ` : ''}
+            <div style="flex: 1;">
+                <div style="font-size: 16px; font-weight: 700; color: #e2e8f0; margin-bottom: 8px;">${meal.name}</div>
+                <div style="display: flex; gap: 16px; font-size: 13px; color: #94a3b8; margin-bottom: 12px;">
+                    <span><strong style="color: #60a5fa;">${meal.calories}</strong> cal</span>
+                    <span><strong style="color: #60a5fa;">${meal.protein}g</strong> protein</span>
+                </div>
+                <button class="btn btn-small" onclick="useWeeklyMealInLog()">➕ Add to Today's Log</button>
+            </div>
+        </div>
+    `;
+    card.style.display = 'block';
+}
+
+// ===========================
 // INITIALIZATION
 // ===========================
 
@@ -840,13 +633,10 @@ function initializeApp() {
 
     updateDashboard();
     updateHistoryTable();
-    updateMealLibrary();
-    updateMealSelect();
-    updateDailyMeals();
+    displaySavedMeal();
+    displayQuickMeal();
     drawChart();
-    renderMealPlan();
-
-    document.getElementById('logDate').addEventListener('change', updateDailyMeals);
+    renderMealSuggestions();
 }
 
 window.addEventListener('load', initializeApp);

@@ -180,34 +180,9 @@
                     <button class="btn btn-primary btn-large" onclick="saveLog()">💪 Save Log</button>
                 </div>
 
-                <!-- Today's Meal Plan -->
-                <div class="card">
-                    <h2 class="card-title">Today's Meal Plan</h2>
-                    <p class="card-subtitle">Add meals from your library</p>
-
-                    <div class="meal-add-section">
-                        <select id="mealSelect" class="meal-select">
-                            <option value="">Select a meal...</option>
-                        </select>
-                        <button class="btn btn-small" onclick="addMealToDay()">Add to Today</button>
-                    </div>
-
-                    <div id="dailyMeals" class="meal-list">
-                        <div class="empty-state">No meals planned</div>
-                    </div>
-
-                    <div id="dailyMealSummary" class="meal-summary" style="display: none;">
-                        <div class="meal-summary-title">Daily Totals</div>
-                        <div class="meal-summary-stats">
-                            <div class="meal-summary-stat">
-                                <strong id="dailyTotalCalories">0</strong> / <span id="targetCalories">1750</span> kcal
-                            </div>
-                            <div class="meal-summary-stat">
-                                <strong id="dailyTotalProtein">0</strong> / <span id="targetProtein">180</span> g
-                                protein
-                            </div>
-                        </div>
-                    </div>
+                <div class="card" id="quickMealCard" style="display: none;">
+                    <h2 class="card-title">Quick Add Weekly Meal</h2>
+                    <div id="quickMealDisplay"></div>
                 </div>
             </div>
         </div>
@@ -216,33 +191,43 @@
         <div id="meals-tab" class="tab-content">
             <div class="container">
                 <div class="card">
-                    <h2 class="card-title">Add New Meal</h2>
+                    <h2 class="card-title">My Weekly Meal</h2>
+                    <p class="card-subtitle">Set one meal to eat all week for consistency</p>
+
+                    <div class="form-group">
+                        <label for="weeklyMealName">Meal Name</label>
+                        <input type="text" id="weeklyMealName" placeholder="e.g., Chicken Rice Bowl">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="weeklyMealImage">Image URL</label>
+                        <input type="url" id="weeklyMealImage" placeholder="https://example.com/image.jpg">
+                        <div id="imagePreview" class="image-preview"></div>
+                    </div>
+
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="mealName">Meal Name</label>
-                            <input type="text" id="mealName" placeholder="e.g., Breakfast - Eggs & Toast">
+                            <label for="weeklyMealCalories">Calories</label>
+                            <input type="number" id="weeklyMealCalories" placeholder="e.g., 1750">
                         </div>
                         <div class="form-group">
-                            <label for="mealCalories">Calories</label>
-                            <input type="number" id="mealCalories" placeholder="e.g., 450">
-                        </div>
-                        <div class="form-group">
-                            <label for="mealProtein">Protein (g)</label>
-                            <input type="number" id="mealProtein" placeholder="e.g., 35">
+                            <label for="weeklyMealProtein">Protein (g)</label>
+                            <input type="number" id="weeklyMealProtein" placeholder="e.g., 180">
                         </div>
                     </div>
+
                     <div class="form-group">
-                        <label for="mealNotes">Notes (optional)</label>
-                        <textarea id="mealNotes" placeholder="e.g., 3 eggs, 2 slices whole wheat toast"></textarea>
+                        <label for="weeklyMealIngredients">Ingredients</label>
+                        <textarea id="weeklyMealIngredients"
+                            placeholder="8 oz chicken breast, 2 cups rice, 1 cup broccoli..." rows="4"></textarea>
                     </div>
-                    <button class="btn btn-primary" onclick="addMeal()">➕ Add Meal</button>
+
+                    <button class="btn btn-primary" onclick="saveWeeklyMeal()">💾 Save Weekly Meal</button>
                 </div>
 
-                <div class="card">
-                    <h2 class="card-title">Meal Library</h2>
-                    <div id="mealLibrary" class="meal-list">
-                        <div class="empty-state">No meals saved yet</div>
-                    </div>
+                <div class="card" id="savedMealCard" style="display: none;">
+                    <h2 class="card-title">Current Weekly Meal</h2>
+                    <div id="savedMealDisplay"></div>
                 </div>
             </div>
         </div>
@@ -251,12 +236,10 @@
         <div id="plan-tab" class="tab-content">
             <div class="container">
                 <div class="card">
-                    <h2 class="card-title">7-Day Meal Plan</h2>
-                    <p class="card-subtitle">Pre-built aggressive cut (1,650-1,800 cal, 170-200g protein)</p>
+                    <h2 class="card-title">Meal Ideas</h2>
+                    <p class="card-subtitle">Pre-built high-protein meals for aggressive cutting</p>
 
-                    <button class="btn btn-primary" onclick="generateGroceryList()">🛒 Generate Grocery List</button>
-
-                    <div class="meal-plan-grid" id="mealPlanGrid"></div>
+                    <div class="meal-suggestions" id="mealSuggestions"></div>
                 </div>
 
                 <div class="card" id="groceryListCard" style="display: none;">
