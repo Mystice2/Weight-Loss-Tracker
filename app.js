@@ -2,7 +2,7 @@
 // PWA SERVICE WORKER REGISTRATION
 // ===========================
 
-// UNREGISTER OLD SERVICE WORKER (to fix caching issues)
+// UNREGISTER OLD SERVICE WORKER AND CLEAR ALL CACHES
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function (registrations) {
         for (let registration of registrations) {
@@ -10,6 +10,25 @@ if ('serviceWorker' in navigator) {
             console.log('Service Worker unregistered');
         }
     });
+
+    // Clear all caches
+    if ('caches' in window) {
+        caches.keys().then(function (cacheNames) {
+            return Promise.all(
+                cacheNames.map(function (cacheName) {
+                    console.log('Deleting cache:', cacheName);
+                    return caches.delete(cacheName);
+                })
+            );
+        }).then(function () {
+            console.log('All caches cleared! Please refresh the page.');
+            // Force reload after clearing caches (only once)
+            if (!sessionStorage.getItem('cachesCleared')) {
+                sessionStorage.setItem('cachesCleared', 'true');
+                window.location.reload(true);
+            }
+        });
+    }
 }
 
 // ===========================
